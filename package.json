@@ -1,0 +1,23 @@
+{
+  "name": "@deterministic-sh/agent-skills",
+  "version": "0.1.0",
+  "description": "AI skills for agent interaction with Deterministic across all phases: preparation, submission, results, feedback, and operations.",
+  "author": "Applied Worlds",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deterministic-sh/agent-skills.git"
+  },
+  "bugs": {
+    "url": "https://github.com/deterministic-sh/agent-skills/issues"
+  },
+  "homepage": "https://github.com/deterministic-sh/agent-skills#readme",
+  "files": [
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

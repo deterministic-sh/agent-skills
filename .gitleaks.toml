@@ -1,0 +1,16 @@
+# Gitleaks policy for Deterministic scans (mirror export + publish tarballs).
+# Extends the default ruleset; the ONLY allowances are the documented
+# API-key PLACEHOLDER idioms used in skills/docs examples — short toy ids
+# (k1/k7m4n9/abc123) and angle-bracket markers (<key-id>/<secret>/<redacted>).
+# A real key (long random secret segment, no brackets) still trips the scan.
+# Referenced by runbook checklist §3h (docs/operations/cli-publish.md).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Deterministic docs/skills placeholder keys — not real credentials"
+regexTarget = "line"
+regexes = [
+  '''det_(live|test)_[A-Za-z0-9]{0,8}_?(<[a-z-]+>|abc123|secretpart|xxx)''',
+  '''det_(live|test)_<key[-a-z]*>''',
+]

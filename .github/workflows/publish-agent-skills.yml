@@ -1,0 +1,284 @@
+name: Publish agent-skills
+
+# ---------------------------------------------------------------------------
+# AUTHORED IN THE MONOREPO at
+# packages/agent-skills/mirror/workflows/publish-agent-skills.yml. Edit it
+# there ONLY — this file is DELIVERED to the public deterministic-sh/agent-skills
+# repo as .github/workflows/publish-agent-skills.yml by the mirror workflow
+# (.github/workflows/mirror-agent-skills.yml,
+# scripts/workflows/assemble-skills-mirror.mjs). Editing the copy inside the
+# public repo directly will be overwritten by the next mirror run.
+# Runbook: docs/operations/agent-skills-publish.md
+# ---------------------------------------------------------------------------
+#
+# Publishes @deterministic-sh/agent-skills to npm via Trusted Publishers OIDC.
+# Runs in the PUBLIC deterministic-sh/agent-skills repo, which contains only
+# the mirrored distribution tree (skills/**, package.json, README.md,
+# LICENSE, docs/trusted-keys.asc) — no monorepo, no workspaces, no lockfile,
+# no node_modules. agent-skills ships hand-authored markdown skill files, so
+# there is nothing to build; this workflow validates the committed content
+# in place.
+#
+# Trigger: GitHub Release published. The `prepare` job is gated by a job-
+# level `if:` that skips cleanly when the tag isn't agent-skills-v* (so
+# non-agent-skills releases don't produce a failed workflow run). A separate
+# in-job strict-grammar shell step fails malformed agent-skills-v tags
+# loudly.
+#
+# Two-job structure (mirrors publish-cli.yml's adapted posture; the
+# monorepo's original separate `verify` job — which re-ran the agent-skills
+# test suite on the tagged commit — has no equivalent here since this repo
+# carries no test suite; commit-health verification happens in the
+# monorepo's own PR CI before the mirror ever runs):
+#   - prepare: NO environment gate; reviewer inspects this job's output
+#     (tarball file list, SBOM, gitleaks scan, version match) BEFORE
+#     approving the publish job.
+#   - publish: environment: npm-publish (manual reviewer approval).
+#     Publishes the verified tarball produced by prepare BYTE-IDENTICAL.
+#
+# No long-lived NPM_TOKEN; no contents: write.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  prepare:
+    # Job-level filter: non-agent-skills release tags skip this workflow
+    # cleanly (status "skipped"), not failed.
+    if: startsWith(github.event.release.tag_name, 'agent-skills-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.derive-version.outputs.version }}
+      tarball-name: ${{ steps.derive-version.outputs.tarball-name }}
+    steps:
+      - name: Strict tag grammar
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if ! [[ "$TAG" =~ ^agent-skills-v[0-9]+\.[0-9]+\.[0-9]+([-][A-Za-z0-9.-]+)?$ ]]; then
+            echo "::error::tag '$TAG' did not match agent-skills-vX.Y.Z[-prerelease]" >&2
+            exit 1
+          fi
+          echo "tag $TAG passed strict grammar"
+
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+
+      - name: Verify tag signature
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [ -f docs/trusted-keys.asc ]; then
+            gpg --import docs/trusted-keys.asc
+          else
+            echo "::error::missing docs/trusted-keys.asc" >&2
+            exit 1
+          fi
+          git verify-tag "$TAG"
+
+      - name: Tag ancestry (this repo's own origin/main)
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main; then
+            echo "::error::tag commit $GITHUB_SHA is not reachable from origin/main" >&2
+            exit 1
+          fi
+          echo "tag commit reachable from origin/main"
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          # Exact-pinned Node toolchain (matches publish-cli.yml). Node
+          # 24.16.0 bundles npm 11.13.0 — satisfies the Trusted Publishers
+          # OIDC minimum of 11.5.1 without any registry-fetch bootstrap.
+          # Bump this in a tracked PR when a newer minor lands; verify
+          # Node's bundled npm stays >= 11.5.1.
+          node-version: '24.16.0'
+
+      - name: Assert Node + npm versions
+        # Trusted Publishers OIDC requires npm CLI >= 11.5.1. Node 24.16.0
+        # ships npm 11.13.0; this assertion is the fail-closed guard against
+        # toolchain drift.
+        run: |
+          node -e 'const m = process.version.match(/^v(\d+)\.(\d+)\.(\d+)/); const [maj,min] = [parseInt(m[1]),parseInt(m[2])]; if (maj < 22 || (maj === 22 && min < 14)) { console.error("Node >=22.14.0 required; got", process.version); process.exit(1); }'
+          NPM_VERSION=$(npm --version)
+          echo "npm: $NPM_VERSION"
+          node -e "const v='${NPM_VERSION}'.split('.').map(Number); const [ma,mi,pa]=v; if (ma < 11 || (ma === 11 && mi < 5) || (ma === 11 && mi === 5 && pa < 1)) { console.error('npm >= 11.5.1 required for Trusted Publishers OIDC; got', '${NPM_VERSION}'); process.exit(1); }"
+
+      - name: Validate committed skills content
+        # No build step here (round-trip #793): this repo never runs `npm
+        # ci`. skills/** is COMMITTED content, mirrored verbatim from a
+        # reviewed monorepo commit. This step validates its shape in place.
+        run: |
+          test -f "skills/deterministic/SKILL.md" || { echo "::error::missing skills/deterministic/SKILL.md" >&2; exit 1; }
+          shopt -s nullglob
+          FOUND=0
+          for f in skills/*/SKILL.md; do
+            FOUND=1
+            grep -q '^name:' "$f" || { echo "::error::$f missing 'name:' frontmatter" >&2; exit 1; }
+            grep -q '^description:' "$f" || { echo "::error::$f missing 'description:' frontmatter" >&2; exit 1; }
+          done
+          if [ "$FOUND" -ne 1 ]; then
+            echo "::error::no skills/*/SKILL.md files found" >&2
+            exit 1
+          fi
+          echo "skills content validation ok"
+
+      - name: Secret scan skills content
+        # Pinned-binary gitleaks (same version+SHA pattern as publish-cli.yml):
+        # explicit download + checksum verification + explicit --source
+        # invocation, never the unpinned gitleaks-action. Markdown skill
+        # files are scanned because they can accidentally embed example API
+        # keys / tokens; --config .gitleaks.toml allowlists the documented
+        # placeholder-key idioms (det_live_<key-id> etc.) so example content
+        # doesn't trip the default ruleset.
+        env:
+          GITLEAKS_VERSION: '8.21.2'
+          GITLEAKS_SHA256_X64: '5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba'
+        run: |
+          set -euo pipefail
+          # Pinned to linux_x64 because GitHub-hosted ubuntu-latest runners
+          # are x64. ARM64 support: add the linux_arm64 SHA-256 when this
+          # workflow moves to ARM runners.
+          URL="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSL "$URL" -o gitleaks.tgz
+          ACTUAL_SHA=$(sha256sum gitleaks.tgz | awk '{print $1}')
+          if [ "$ACTUAL_SHA" != "$GITLEAKS_SHA256_X64" ]; then
+            echo "::error::gitleaks SHA-256 mismatch: $ACTUAL_SHA vs $GITLEAKS_SHA256_X64" >&2
+            exit 1
+          fi
+          tar -xzf gitleaks.tgz gitleaks
+          chmod +x gitleaks
+          ./gitleaks detect --source skills --config .gitleaks.toml --no-git --verbose --report-format json --report-path gitleaks-report.json
+          echo "gitleaks scan ok — no secrets found in skills"
+
+      - name: Derive version + tarball name
+        id: derive-version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION="${TAG#agent-skills-v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::tag version $VERSION does not equal package.json $PKG_VERSION" >&2
+            exit 1
+          fi
+          # npm pack tarball name: <name>-<version>.tgz with scope `@`
+          # stripped and `/` replaced by `-`. For
+          # @deterministic-sh/agent-skills → deterministic-sh-agent-skills.
+          TARBALL_NAME="deterministic-sh-agent-skills-$VERSION.tgz"
+          {
+            echo "version=$VERSION"
+            echo "tarball-name=$TARBALL_NAME"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: npm pack --dry-run + allowlist gate
+        # No `-w` flag: this repo is a single package, not a workspace.
+        run: |
+          npm pack --dry-run --json > pack.json
+          cat pack.json
+          node scripts/assert-tarball-allowlist.mjs pack.json
+
+      - name: SBOM generation
+        run: npm sbom --sbom-format=spdx > sbom.json
+
+      - name: Build real tarball + SHA-256
+        env:
+          TARBALL_NAME: ${{ steps.derive-version.outputs.tarball-name }}
+        run: |
+          mkdir -p agent-skills-publish-payload
+          # Real pack (not dry-run); pack into the staging dir.
+          npm pack --pack-destination agent-skills-publish-payload
+          test -f "agent-skills-publish-payload/$TARBALL_NAME" || { echo "::error::missing agent-skills-publish-payload/$TARBALL_NAME" >&2; ls agent-skills-publish-payload >&2; exit 1; }
+          # Re-run allowlist against the real tarball's file list.
+          node -e "
+            const { execSync } = require('child_process');
+            const files = execSync('tar -tzf agent-skills-publish-payload/${TARBALL_NAME}', { encoding: 'utf8' })
+              .split('\n').filter(Boolean);
+            const desc = { files: files.map(p => ({ path: p })) };
+            require('fs').writeFileSync('agent-skills-publish-payload/real-tarball-files.json', JSON.stringify([desc]));
+          "
+          node scripts/assert-tarball-allowlist.mjs agent-skills-publish-payload/real-tarball-files.json
+          sha256sum "agent-skills-publish-payload/$TARBALL_NAME" | awk '{print $1}' > agent-skills-publish-payload/tarball-sha256.txt
+          echo "tarball SHA-256: $(cat agent-skills-publish-payload/tarball-sha256.txt)"
+          cp pack.json agent-skills-publish-payload/pack.json
+          cp sbom.json agent-skills-publish-payload/sbom.json
+
+      - name: Upload publish payload
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: agent-skills-publish-payload
+          path: agent-skills-publish-payload/
+          retention-days: 14
+
+  publish:
+    needs: [prepare]
+    if: startsWith(github.event.release.tag_name, 'agent-skills-v')
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 1
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          # Same toolchain pin as prepare. Node 24.16.0 bundles npm 11.13.0,
+          # satisfying the Trusted Publishers OIDC minimum without any
+          # registry-fetch bootstrap.
+          node-version: '24.16.0'
+
+      - name: Assert Node + npm versions
+        # Same gate as the prepare job. Trusted Publishers OIDC requires
+        # npm >= 11.5.1; Node 24.16.0 ships npm 11.13.0; this assertion is
+        # the fail-closed guard against toolchain drift.
+        run: |
+          node -e 'const m = process.version.match(/^v(\d+)\.(\d+)\.(\d+)/); const [maj,min] = [parseInt(m[1]),parseInt(m[2])]; if (maj < 22 || (maj === 22 && min < 14)) { console.error("Node >=22.14.0 required; got", process.version); process.exit(1); }'
+          NPM_VERSION=$(npm --version)
+          echo "npm: $NPM_VERSION"
+          node -e "const v='${NPM_VERSION}'.split('.').map(Number); const [ma,mi,pa]=v; if (ma < 11 || (ma === 11 && mi < 5) || (ma === 11 && mi === 5 && pa < 1)) { console.error('npm >= 11.5.1 required for Trusted Publishers OIDC; got', '${NPM_VERSION}'); process.exit(1); }"
+
+      - name: Download publish payload
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: agent-skills-publish-payload
+          path: agent-skills-publish-payload
+
+      - name: Re-verify tarball
+        env:
+          TARBALL_NAME: ${{ needs.prepare.outputs.tarball-name }}
+          EXPECTED_VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          TARBALL="agent-skills-publish-payload/$TARBALL_NAME"
+          test -f "$TARBALL" || { echo "::error::missing $TARBALL" >&2; exit 1; }
+          ACTUAL_SHA=$(sha256sum "$TARBALL" | awk '{print $1}')
+          EXPECTED_SHA=$(tr -d '[:space:]' < agent-skills-publish-payload/tarball-sha256.txt)
+          if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
+            echo "::error::tarball SHA-256 mismatch: $ACTUAL_SHA vs $EXPECTED_SHA" >&2
+            exit 1
+          fi
+          node scripts/assert-tarball-allowlist.mjs agent-skills-publish-payload/pack.json
+          tar -xzf "$TARBALL" -C agent-skills-publish-payload package/package.json
+          TARBALL_VERSION=$(node -p "require('./agent-skills-publish-payload/package/package.json').version")
+          if [ "$TARBALL_VERSION" != "$EXPECTED_VERSION" ]; then
+            echo "::error::tarball package.json version $TARBALL_VERSION does not match expected $EXPECTED_VERSION" >&2
+            exit 1
+          fi
+          echo "tarball re-verification ok (sha=$ACTUAL_SHA version=$TARBALL_VERSION)"
+
+      - name: Publish
+        env:
+          TARBALL_NAME: ${{ needs.prepare.outputs.tarball-name }}
+        run: npm publish "agent-skills-publish-payload/$TARBALL_NAME" --access public
