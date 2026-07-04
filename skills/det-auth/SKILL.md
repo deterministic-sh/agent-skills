@@ -36,7 +36,7 @@ CLI only. HTTP and MCP callers do not use these commands; they read credentials 
 ## Prerequisites
 
 - `det` CLI installed and on `$PATH`. Verify with `det --version`.
-- An API key from the Deterministic dashboard (`https://deterministic.app`).
+- An API key from the Deterministic dashboard (`https://deterministic.sh`).
 
 ## Credential resolution order
 
@@ -47,7 +47,7 @@ When any `det` command runs, the CLI resolves the API key and host in this prior
 | 1 (highest) | `$DETERMINISTIC_API_KEY` env var | `--host` flag |
 | 2 | `~/.config/deterministic/credentials.json` | `$DETERMINISTIC_HOST` env var |
 | 3 | — | `credentials.json` `host` field |
-| 4 (lowest) | — | `https://deterministic.app` (built-in default) |
+| 4 (lowest) | — | `https://deterministic.sh` (built-in default) |
 
 `XDG_CONFIG_HOME` overrides the `~/.config` base directory when set.
 
@@ -67,22 +67,22 @@ Never embed an API key in a host URL or pass it as a command-line argument.
 
 Prompt for an API key and write it to `~/.config/deterministic/credentials.json` with mode `0600` (file) and `0700` (parent directory).
 
-On a TTY, the host prompt defaults to `https://deterministic.app`; press Enter to accept the default. The API key prompt is no-echo. In pipe mode (non-TTY), the host is resolved from `--host` or `$DETERMINISTIC_HOST` without prompting; stdin carries the API key as a single line.
+On a TTY, the host prompt defaults to `https://deterministic.sh`; press Enter to accept the default. The API key prompt is no-echo. In pipe mode (non-TTY), the host is resolved from `--host` or `$DETERMINISTIC_HOST` without prompting; stdin carries the API key as a single line.
 
 ```bash
 det auth login
-# Host [https://deterministic.app]: <Enter>
+# Host [https://deterministic.sh]: <Enter>
 # API key: (no echo)
 # Saved credentials to /home/user/.config/deterministic/credentials.json
 
-det auth login --host https://staging.deterministic.app
+det auth login --host https://staging.deterministic.sh
 # API key: (no echo)
 ```
 
 Pipe mode (CI):
 
 ```bash
-printf '%s' "$DETERMINISTIC_API_KEY" | det auth login --host https://deterministic.app
+printf '%s' "$DETERMINISTIC_API_KEY" | det auth login --host https://deterministic.sh
 ```
 
 Exit codes: `0` on success, `2` on invalid host or missing key.
@@ -103,7 +103,7 @@ Print the active host, a redacted version of the API key, and which source provi
 
 ```bash
 det auth whoami
-# host: https://deterministic.app
+# host: https://deterministic.sh
 # api key: det_live_abc123_<redacted>
 # source: env
 ```
@@ -123,7 +123,7 @@ Exit codes: `0` on success, `2` when no credentials are found.
 export DETERMINISTIC_API_KEY=det_live_<key-id>_<secret>
 
 # Override the host without using --host on every command.
-export DETERMINISTIC_HOST=https://deterministic.app
+export DETERMINISTIC_HOST=https://deterministic.sh
 ```
 
 Never put the API key value in a URL, a shell history line, a log file, or a script argument. Use environment variables or the credentials file.
@@ -134,12 +134,12 @@ Never put the API key value in a URL, a shell history line, a log file, or a scr
 
 ```bash
 det auth login
-# Host [https://deterministic.app]: <Enter to accept>
+# Host [https://deterministic.sh]: <Enter to accept>
 # API key: (type key, no echo)
 # Saved credentials to /home/user/.config/deterministic/credentials.json
 
 det auth whoami
-# host: https://deterministic.app
+# host: https://deterministic.sh
 # api key: det_live_k7m4n9_<redacted>
 # source: file
 ```
@@ -150,7 +150,7 @@ det auth whoami
 export DETERMINISTIC_API_KEY=det_live_k7m4n9_<secret>
 
 det auth whoami
-# host: https://deterministic.app
+# host: https://deterministic.sh
 # api key: det_live_k7m4n9_<redacted>
 # source: env
 ```

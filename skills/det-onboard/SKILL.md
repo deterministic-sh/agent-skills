@@ -97,7 +97,7 @@ det auth whoami
 
 ```bash
 det auth login
-# Host [https://deterministic.app]: <Enter>
+# Host [https://deterministic.sh]: <Enter>
 # API key: (no echo)
 # Saved credentials to ~/.config/deterministic/credentials.json
 ```
@@ -109,7 +109,7 @@ det auth whoami
 # source: file
 ```
 
-To obtain an API key, visit the Deterministic dashboard at `https://deterministic.app`.
+To obtain an API key, visit the Deterministic dashboard at `https://deterministic.sh`.
 
 Do not put the API key in a URL, shell history line, or script argument. Use the environment variable or the credentials file.
 
@@ -188,7 +188,7 @@ det auth whoami  # exits 2
 # Step 3: configure via env var
 export DETERMINISTIC_API_KEY=det_live_k7m4n9_<secret>
 det auth whoami
-# host: https://deterministic.app
+# host: https://deterministic.sh
 # api key: det_live_k7m4n9_<redacted>
 # source: env
 
@@ -210,7 +210,7 @@ curl -s \
   -H "Authorization: Bearer $DETERMINISTIC_API_KEY" \
   -H "Content-Type: application/json" \
   -d @test-bundle.json \
-  "https://deterministic.app/api/v1/validate" | jq '.report.summary'
+  "https://deterministic.sh/api/v1/validate" | jq '.report.summary'
 ```
 
 A `200 OK` with `summary.overall_status` confirms connectivity.

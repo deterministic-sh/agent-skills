@@ -49,7 +49,7 @@ No `Content-Type` header is needed for GET requests. Do not send a request body 
 ## Endpoint
 
 ```
-GET https://deterministic.app/api/v1/reports
+GET https://deterministic.sh/api/v1/reports
 ```
 
 ### Query parameters
@@ -121,7 +121,7 @@ The listing endpoint reads from the `report_summary` projection, which is pruned
 ```bash
 curl -s \
   -H "Authorization: Bearer $DETERMINISTIC_API_KEY" \
-  "https://deterministic.app/api/v1/reports" | jq .
+  "https://deterministic.sh/api/v1/reports" | jq .
 ```
 
 ### Example 2 — Filter failed reports in a date range, paginate
@@ -131,7 +131,7 @@ First page:
 ```bash
 curl -s \
   -H "Authorization: Bearer $DETERMINISTIC_API_KEY" \
-  "https://deterministic.app/api/v1/reports?status=fail&from=2026-05-01T00:00:00Z&to=2026-05-31T23:59:59Z&limit=50" \
+  "https://deterministic.sh/api/v1/reports?status=fail&from=2026-05-01T00:00:00Z&to=2026-05-31T23:59:59Z&limit=50" \
   | jq .
 ```
 
@@ -140,7 +140,7 @@ If the response includes `"nextCursor": "eyJ0Ijox…"`, fetch the next page:
 ```bash
 curl -s \
   -H "Authorization: Bearer $DETERMINISTIC_API_KEY" \
-  "https://deterministic.app/api/v1/reports?status=fail&from=2026-05-01T00:00:00Z&to=2026-05-31T23:59:59Z&limit=50&cursor=eyJ0Ijox…" \
+  "https://deterministic.sh/api/v1/reports?status=fail&from=2026-05-01T00:00:00Z&to=2026-05-31T23:59:59Z&limit=50&cursor=eyJ0Ijox…" \
   | jq .
 ```
 
@@ -151,6 +151,6 @@ Continue until `nextCursor` is `null`.
 ```bash
 curl -s \
   -H "Authorization: Bearer $DETERMINISTIC_API_KEY" \
-  "https://deterministic.app/api/v1/reports?domain=fluid-simulation&status=errored" \
+  "https://deterministic.sh/api/v1/reports?domain=fluid-simulation&status=errored" \
   | jq '.reports[] | {id, createdAt}'
 ```
