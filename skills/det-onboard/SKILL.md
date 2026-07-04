@@ -42,32 +42,23 @@ det --version
 
 If the command is not found:
 
-1. Install the CLI. The package is `@deterministic-sh/cli`, but it is **not published
-   to npm yet** — a global `npm install` fails until the first release ships (do
-   not attempt it; this step will be updated at publish time). Until then, use
-   the in-repo build (design partners receive the repo/binary through their
-   onboarding channel):
+1. Install the CLI globally (published with npm provenance; verify with
+   `npm audit signatures` if desired):
 
    ```bash
-   npm run build -w @deterministic-sh/cli
-   node packages/cli/dist/cli.js --version
+   npm install -g @deterministic-sh/cli
    ```
 
-2. Make `det` callable for the remaining steps. The in-repo build does not put a
-   `det` binary on `$PATH`. **In every later step of this skill, read `det` as
-   `node <repo-root>/packages/cli/dist/cli.js`** and substitute the full
-   invocation when you run the command — aliases and `PATH` edits do not survive
-   non-interactive or per-command shell execution, so substitution is the
-   reliable path. Verify the substitution works:
+2. Confirm it is on `$PATH`:
 
    ```bash
-   node packages/cli/dist/cli.js --version
+   which det
+   det --version
    ```
 
-   (A human working in one interactive shell can instead run
-   `alias det="node $PWD/packages/cli/dist/cli.js"` for convenience. After the
-   future npm publish, a global install puts `det` on `$PATH` and no
-   substitution is needed — `which det` then confirms it.)
+   (Working inside the Deterministic monorepo itself? The in-repo build also
+   works: `npm run build -w @deterministic-sh/cli`, then substitute
+   `node <repo-root>/packages/cli/dist/cli.js` for `det` in later steps.)
 
 The CLI is not required for HTTP or MCP integrations; skip to Step 2 if you are only using those transports.
 
