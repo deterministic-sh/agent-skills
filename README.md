@@ -32,7 +32,7 @@ cp -r skills/deterministic skills/det-* .agents/skills/
 ```
 
 Full install guide, platform integration options, and prerequisites:
-[docs.deterministic.dev/agent-skills/install](https://docs.deterministic.dev/agent-skills/install/).
+[deterministic.sh/docs/agent-skills/install](https://deterministic.sh/docs/agent-skills/install/).
 
 The hosted installer reads this repository directly. The same files also ship
 as the npm package `@deterministic-sh/agent-skills` via the Trusted-Publishers
