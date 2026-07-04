@@ -281,4 +281,10 @@ jobs:
       - name: Publish
         env:
           TARBALL_NAME: ${{ needs.prepare.outputs.tarball-name }}
-        run: npm publish "./agent-skills-publish-payload/$TARBALL_NAME" --access public
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          # npm refuses to implicitly tag prereleases as latest — publish
+          # prerelease versions (any -suffix) under the `next` dist-tag;
+          # stable versions take `latest` explicitly.
+          if [[ "$VERSION" == *-* ]]; then DIST_TAG=next; else DIST_TAG=latest; fi
+          npm publish "./agent-skills-publish-payload/$TARBALL_NAME" --access public --tag "$DIST_TAG"
