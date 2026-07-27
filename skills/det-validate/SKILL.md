@@ -293,4 +293,4 @@ curl -s -X POST https://deterministic.sh/api/v1/validate \
 }
 ```
 
-On success, read the verdict from `result.structuredContent.report.summary.overall_status`. The `reportId` in `result.structuredContent.reportId` is the persistent audit reference. Hosts that support MCP Apps will render the report inline via `ui://validation-report`.
+On success, read the verdict from `result.structuredContent.report.summary.overall_status`. The `reportId` in `result.structuredContent.reportId` is the persistent audit reference.

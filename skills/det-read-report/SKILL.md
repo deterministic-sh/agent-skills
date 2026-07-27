@@ -86,7 +86,7 @@ Optional: `X-Correlation-Id: <your-id>` — echoed in the response header for lo
 
 Required scope: `validate` (same scope that covers the `validate` tool).
 
-On success, `structuredContent` contains the full `ReportResponse`. If the host supports MCP Apps, the bundled Preact UI renders inline via `ui://validation-report`.
+On success, `structuredContent` contains the full `ReportResponse`.
 
 ## Output interpretation
 
