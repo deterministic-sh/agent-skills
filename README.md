@@ -37,7 +37,7 @@ Full install guide, platform integration options, and prerequisites:
 The hosted installer reads this repository directly. The same files also ship
 as the npm package `@deterministic-sh/agent-skills` via the Trusted-Publishers
 OIDC pipeline whenever npm releases are cut — the two channels are additive,
-not alternatives.
+not alternatives. The npm package declares Node.js 24.18.0 or later.
 
 ## About this repository
 

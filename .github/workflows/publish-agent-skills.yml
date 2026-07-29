@@ -46,6 +46,9 @@ permissions:
   contents: read
   id-token: write
 
+env:
+  NPM_CONFIG_MIN_RELEASE_AGE: '1'
+
 jobs:
   prepare:
     # Job-level filter: non-agent-skills release tags skip this workflow
@@ -96,22 +99,28 @@ jobs:
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          # Exact-pinned Node toolchain (matches publish-cli.yml). Node
-          # 24.16.0 bundles npm 11.13.0 — satisfies the Trusted Publishers
-          # OIDC minimum of 11.5.1 without any registry-fetch bootstrap.
-          # Bump this in a tracked PR when a newer minor lands; verify
-          # Node's bundled npm stays >= 11.5.1.
-          node-version: '24.16.0'
+          # Exact release toolchain (matches publish-cli.yml). Bump Node and
+          # its bundled npm assertion together in a tracked runtime-policy PR.
+          node-version: '24.18.0'
 
       - name: Assert Node + npm versions
-        # Trusted Publishers OIDC requires npm CLI >= 11.5.1. Node 24.16.0
-        # ships npm 11.13.0; this assertion is the fail-closed guard against
-        # toolchain drift.
+        # Fail closed on any toolchain drift before packaging.
         run: |
-          node -e 'const m = process.version.match(/^v(\d+)\.(\d+)\.(\d+)/); const [maj,min] = [parseInt(m[1]),parseInt(m[2])]; if (maj < 22 || (maj === 22 && min < 14)) { console.error("Node >=22.14.0 required; got", process.version); process.exit(1); }'
+          node -e 'if (process.version !== "v24.18.0") { console.error("expected Node v24.18.0; got", process.version); process.exit(1); }'
           NPM_VERSION=$(npm --version)
-          echo "npm: $NPM_VERSION"
-          node -e "const v='${NPM_VERSION}'.split('.').map(Number); const [ma,mi,pa]=v; if (ma < 11 || (ma === 11 && mi < 5) || (ma === 11 && mi === 5 && pa < 1)) { console.error('npm >= 11.5.1 required for Trusted Publishers OIDC; got', '${NPM_VERSION}'); process.exit(1); }"
+          if [ "$NPM_VERSION" != "11.16.0" ]; then echo "::error::expected npm 11.16.0; got $NPM_VERSION" >&2; exit 1; fi
+
+      - name: Assert npm release-age policy
+        run: |
+          MIN_RELEASE_AGE=$(npm config get min-release-age)
+          if ! [[ "$MIN_RELEASE_AGE" =~ ^[0-9]+$ ]]; then
+            echo "::error::npm min-release-age must be numeric; got $MIN_RELEASE_AGE" >&2
+            exit 1
+          fi
+          if [ "$MIN_RELEASE_AGE" -lt 1 ]; then
+            echo "::error::npm min-release-age must be at least 1 day; got $MIN_RELEASE_AGE" >&2
+            exit 1
+          fi
 
       - name: Validate committed skills content
         # No build step here (round-trip #793): this repo never runs `npm
@@ -235,20 +244,15 @@ jobs:
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          # Same toolchain pin as prepare. Node 24.16.0 bundles npm 11.13.0,
-          # satisfying the Trusted Publishers OIDC minimum without any
-          # registry-fetch bootstrap.
-          node-version: '24.16.0'
+          # Same exact toolchain pin as prepare.
+          node-version: '24.18.0'
 
       - name: Assert Node + npm versions
-        # Same gate as the prepare job. Trusted Publishers OIDC requires
-        # npm >= 11.5.1; Node 24.16.0 ships npm 11.13.0; this assertion is
-        # the fail-closed guard against toolchain drift.
+        # Same fail-closed gate as the prepare job.
         run: |
-          node -e 'const m = process.version.match(/^v(\d+)\.(\d+)\.(\d+)/); const [maj,min] = [parseInt(m[1]),parseInt(m[2])]; if (maj < 22 || (maj === 22 && min < 14)) { console.error("Node >=22.14.0 required; got", process.version); process.exit(1); }'
+          node -e 'if (process.version !== "v24.18.0") { console.error("expected Node v24.18.0; got", process.version); process.exit(1); }'
           NPM_VERSION=$(npm --version)
-          echo "npm: $NPM_VERSION"
-          node -e "const v='${NPM_VERSION}'.split('.').map(Number); const [ma,mi,pa]=v; if (ma < 11 || (ma === 11 && mi < 5) || (ma === 11 && mi === 5 && pa < 1)) { console.error('npm >= 11.5.1 required for Trusted Publishers OIDC; got', '${NPM_VERSION}'); process.exit(1); }"
+          if [ "$NPM_VERSION" != "11.16.0" ]; then echo "::error::expected npm 11.16.0; got $NPM_VERSION" >&2; exit 1; fi
 
       - name: Download publish payload
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
