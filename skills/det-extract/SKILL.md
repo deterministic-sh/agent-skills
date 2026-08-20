@@ -19,11 +19,13 @@ Turn native CFD output into a Deterministic-ready **Parquet** extract + an **evi
 ## When to use
 
 **Use when:**
+
 - You have CFD output (VTK `.vtu`/`.vtp`/`.vtk`/`.pvd`, an **OpenFOAM** case directory / `.foam` stub, an **EnSight Gold** `.case`, a **CGNS** `.cgns`, or a **Fluent CFF** `.cas.h5`/`.dat.h5`) and need a tabular artifact to validate.
 - You want a boundary-**surface** extract or a **probe/sample-line** through the field (probe is VTK/OpenFOAM only).
 - The customer's data is large or proprietary and must not be uploaded raw. (EnSight Gold, CGNS, and Fluent CFF read selectively — only the requested nodes/variables/zones are paged in.)
 
 **Do not use when:**
+
 - You already have a compliant `parquet`/`csv` extract — go to `det-stage-artifact`.
 - Your input is **legacy pre-2020 Fluent** `.cas`/`.dat` (non-HDF5) — no open spec, unsupported. Modern Fluent CFF `.cas.h5`/`.dat.h5` is supported. Raw 10 GB–50 TB volume dumps are out of scope by design — extract a surface/probe first.
 - Your OpenFOAM case is **parallel-decomposed** (`processor0/`, `processor1/`, …) — run `reconstructPar` first, or point at the reconstructed case; the tool rejects decomposed cases rather than read a partial domain.
@@ -44,9 +46,11 @@ Turn native CFD output into a Deterministic-ready **Parquet** extract + an **evi
 3. **Select fields** with `--fields p,U,...` (omit to keep all). Vector fields (e.g. `U`) are exploded to `U_x,U_y,U_z` columns; point coordinates become `x,y,z`.
 
 4. **Run the tool:**
+
    ```bash
    uvx deterministic-extract case.vtu --surface body --fields p,U --out body.parquet
    ```
+
    It writes `body.parquet` and `body.parquet.schema.json` alongside.
 
 5. **Confirm units + role in the schema sidecar.** The tool extracts numbers, not meaning — `units` and `role` are emitted as `null`. Fill them in (e.g. `U_x` role `velocity`, units `m/s`) before validating. CFD formats do not reliably store units; this is a required human/agent confirmation step.
@@ -75,6 +79,7 @@ uvx deterministic-extract case.vtu --surface body --fields p,U --out body.parque
 # -> body.parquet (rows = surface points; columns x,y,z,p,U_x,U_y,U_z)
 # -> body.parquet.schema.json (confirm units: p=Pa, U_*=m/s; role: U_*=velocity)
 ```
+
 Then: `det-stage-artifact body.parquet` → `r2-artifact://…`, and `det-prepare-bundle` using the confirmed schema.
 
 ### Example 2 — centerline probe line

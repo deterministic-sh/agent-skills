@@ -16,11 +16,13 @@ Analyze a Deterministic validation report and answer the four standard post-vali
 ## When to use
 
 **Use when:**
+
 - You have a `ReportResponse` from `det-read-report` (or from the `structuredContent` of an MCP `validate` / `read-report` call) and need to decide next steps.
 - You want a prioritized list of failures and remediation actions.
 - You need to summarize coverage gaps (checks that did not run or reached `uncertain`).
 
 **Do not use when:**
+
 - You do not yet have a report — call `det-read-report` first.
 - You need to fetch a report from the API — this skill makes no network calls.
 
@@ -47,21 +49,21 @@ Analyze a Deterministic validation report and answer the four standard post-vali
 
 ## Ship decision table
 
-| `report.summary.overall_status` | `report.recommendation.action` | Decision |
-|---|---|---|
-| `pass` | `accept` | Safe to treat results as validated. Proceed. |
-| `fail` | `reject` | Do not ship. Fix failing checks and re-validate. |
-| `uncertain` | `escalate` | Do not ship without human review. Route to a reviewer. |
+| `report.summary.overall_status` | `report.recommendation.action` | Decision                                               |
+| ------------------------------- | ------------------------------ | ------------------------------------------------------ |
+| `pass`                          | `accept`                       | Safe to treat results as validated. Proceed.           |
+| `fail`                          | `reject`                       | Do not ship. Fix failing checks and re-validate.       |
+| `uncertain`                     | `escalate`                     | Do not ship without human review. Route to a reviewer. |
 
 ## Per-check status → action mapping
 
-| Check status | Action |
-|---|---|
-| `pass` | No action needed. |
-| `fail` | Block shipment. Fix the underlying issue and re-validate. A reviewer may override with `det-submit-feedback` if appropriate. |
-| `uncertain` | Do not treat as passing. Either supply more evidence and re-validate, or route for human review via `det-submit-feedback`. |
-| `not_run` | Note the gap. This check was not applicable to the current domain/regime, or a prerequisite check failed. No action required unless the gap represents a coverage concern you care about. |
-| `timeout` | Treat as `uncertain`. The check exceeded its budget. May indicate a large or complex evidence input; consider splitting evidence or contacting support if it recurs. |
+| Check status | Action                                                                                                                                                                                    |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pass`       | No action needed.                                                                                                                                                                         |
+| `fail`       | Block shipment. Fix the underlying issue and re-validate. A reviewer may override with `det-submit-feedback` if appropriate.                                                              |
+| `uncertain`  | Do not treat as passing. Either supply more evidence and re-validate, or route for human review via `det-submit-feedback`.                                                                |
+| `not_run`    | Note the gap. This check was not applicable to the current domain/regime, or a prerequisite check failed. No action required unless the gap represents a coverage concern you care about. |
+| `timeout`    | Treat as `uncertain`. The check exceeded its budget. May indicate a large or complex evidence input; consider splitting evidence or contacting support if it recurs.                      |
 
 ## Output format
 
@@ -74,6 +76,7 @@ A single sentence stating whether the results are safe to ship, and why.
 ### 2. What failed and why
 
 For each failing check:
+
 - Check ID and status
 - What the check tests (inferred from `id` and `message`)
 - The specific finding from `message`
@@ -92,6 +95,7 @@ List every check with `status === "not_run"` or `status === "uncertain"` or `sta
 ### Example 1 — Fail with two critical checks
 
 **Input report summary:**
+
 ```jsonc
 {
   "summary": {
@@ -128,12 +132,14 @@ List every check with `status === "not_run"` or `status === "uncertain"` or `sta
 **Ship decision:** Do not ship. Two checks failed; the declared flow regime is inconsistent with the computed Reynolds number.
 
 **What failed and why:**
+
 1. `reynolds-number-regime` [fail] — This check verifies that the declared `operating_regime` matches the Reynolds number computed from the evidence. The bundle declares `laminar` but the computed Re (3800) is in the transitional-to-turbulent range (above 2300). The result is internally inconsistent and cannot be treated as a validated laminar simulation.
 2. `pressure-continuity` [fail] — This check verifies that the solver reached a converged pressure field. The final residual (1.2e-2) is two orders of magnitude above the required threshold (1e-4). Unconverged pressure fields can produce locally plausible but globally incorrect velocity distributions.
 
 **What to fix first:** Correct the flow regime declaration or re-run the simulation at an appropriate Reynolds number. If the simulation is intentionally turbulent, update `context.operating_regime` to `turbulent` in the bundle and re-validate. Do not proceed to convergence fixes until the regime is consistent — some convergence checks change behavior under different regimes.
 
 **Coverage gaps:**
+
 - `turbulence-intensity` [not_run] — skipped because the declared regime is `laminar`. This gap will resolve once the regime inconsistency is corrected.
 
 ---
@@ -141,6 +147,7 @@ List every check with `status === "not_run"` or `status === "uncertain"` or `sta
 ### Example 2 — Pass with one uncertain check
 
 **Input report summary:**
+
 ```jsonc
 {
   "summary": {
@@ -175,6 +182,7 @@ List every check with `status === "not_run"` or `status === "uncertain"` or `sta
 **What failed and why:** No checks failed outright.
 
 **Uncertain checks requiring attention:**
+
 - `eos-consistency` [uncertain] — The check needs a `density_field` evidence item to verify equation-of-state consistency. The evidence item was absent from the bundle. Either add the density field evidence and re-validate, or have a reviewer confirm it is not applicable for this simulation via `det-submit-feedback`.
 
 **What to fix first:** Add a `density_field` evidence item to the bundle (or supply it as a staged artifact) and re-submit. If density is not available, route to a human reviewer with `det-submit-feedback` using `action: "annotate"` and a note explaining why the field is absent.

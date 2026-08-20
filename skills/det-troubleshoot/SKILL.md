@@ -18,12 +18,14 @@ Diagnose common errors from the Deterministic CLI, HTTP API, and MCP transport, 
 ## When to use
 
 **Use when:**
+
 - A `det` CLI command exited with a non-zero code and you need to understand why.
 - An HTTP API call returned a non-200 status and you need to parse the error envelope.
 - An MCP tool call returned `isError: true` and you need to identify the cause.
 - You need to handle rate limiting or back off correctly.
 
 **Do not use when:**
+
 - No credentials are configured yet — use det-onboard.
 - The error is in bundle construction — use det-prepare-bundle for schema guidance.
 
@@ -35,14 +37,14 @@ CLI, HTTP, and MCP.
 
 ## CLI exit codes
 
-| Code | Meaning | Common causes |
-|---|---|---|
-| `0` | Report received; `recommendation.action = accept`. Also: auth login/logout/whoami success. | — |
-| `1` | Report received; `recommendation.action = escalate` or `reject`. | The validation ran; the simulation evidence did not pass. Review the report. |
-| `2` | Caller error — the request was not sent or was rejected before processing. | HTTP 4xx response, preflight failure, bundle load failure, missing or invalid API key, credentials file error, invalid host. |
-| `3` | Server error — HTTP 5xx. | Transient Deterministic service failure. Retry with back-off. |
-| `4` | Local IO or network failure — fetch threw; no HTTP response received. | No internet, DNS failure, wrong host URL, firewall. |
-| `64` | Internal CLI bug — uncaught exception. | Report this as a bug with the full stderr output. |
+| Code | Meaning                                                                                    | Common causes                                                                                                                |
+| ---- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `0`  | Report received; `recommendation.action = accept`. Also: auth login/logout/whoami success. | —                                                                                                                            |
+| `1`  | Report received; `recommendation.action = escalate` or `reject`.                           | The validation ran; the simulation evidence did not pass. Review the report.                                                 |
+| `2`  | Caller error — the request was not sent or was rejected before processing.                 | HTTP 4xx response, preflight failure, bundle load failure, missing or invalid API key, credentials file error, invalid host. |
+| `3`  | Server error — HTTP 5xx.                                                                   | Transient Deterministic service failure. Retry with back-off.                                                                |
+| `4`  | Local IO or network failure — fetch threw; no HTTP response received.                      | No internet, DNS failure, wrong host URL, firewall.                                                                          |
+| `64` | Internal CLI bug — uncaught exception.                                                     | Report this as a bug with the full stderr output.                                                                            |
 
 **First check after any non-zero exit:** read stderr. The CLI writes a human-readable error line to stderr on exit codes 2, 3, and 4.
 
@@ -83,13 +85,13 @@ Schema or semantic validation failure. Check `error.fieldErrors` for the list of
 
 Common `fieldErrors` causes:
 
-| `fieldErrors[].path` | Likely fix |
-|---|---|
-| `evidence.<n>.schema` | The `schema` field is required on every evidence item. |
-| `domain` | Use `fluid-simulation` (hyphen, not underscore). The underscore alias `fluid_simulation` is accepted but prefer the canonical form. |
-| `mode` | Use `instant` or `flag`. `gate` is reserved and rejected at service time. |
-| `user_check_overrides.__proto__` | The keys `__proto__`, `prototype`, and `constructor` are forbidden at every nesting level. |
-| `context_provenance.<n>.path` | The path is not in the admitted set. Only `context.method`, `context.operating_regime`, `context.scenario`, `context.time_basis`, and `context.parameters.{dynamic_viscosity,kinematic_viscosity,density}` are accepted. |
+| `fieldErrors[].path`             | Likely fix                                                                                                                                                                                                               |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `evidence.<n>.schema`            | The `schema` field is required on every evidence item.                                                                                                                                                                   |
+| `domain`                         | Use `fluid-simulation` (hyphen, not underscore). The underscore alias `fluid_simulation` is accepted but prefer the canonical form.                                                                                      |
+| `mode`                           | Use `instant` or `flag`. `gate` is reserved and rejected at service time.                                                                                                                                                |
+| `user_check_overrides.__proto__` | The keys `__proto__`, `prototype`, and `constructor` are forbidden at every nesting level.                                                                                                                               |
+| `context_provenance.<n>.path`    | The path is not in the admitted set. Only `context.method`, `context.operating_regime`, `context.scenario`, `context.time_basis`, and `context.parameters.{dynamic_viscosity,kinematic_viscosity,density}` are accepted. |
 
 For the `GET /api/v1/reports` endpoint, parameter validation errors do not include per-field detail. Re-check all query parameters against the allowed types and ranges (see det-list-reports).
 
@@ -117,6 +119,7 @@ Verify with `det auth whoami` (CLI) or by checking whether `$DETERMINISTIC_API_K
 ```
 
 The `POST /api/v1/validate` body cap is **2 MiB**. If evidence files push the bundle over that limit:
+
 1. Upload large evidence files separately using `det-stage-artifact` (`POST /api/artifacts/staging`).
 2. Replace the inline `value` in the evidence item with `"uri": "r2-artifact://<requestId>/<artifactId>"`.
 3. Re-submit the bundle — it will now be under the cap.
@@ -133,6 +136,7 @@ Retry-After: 12
 Read the `Retry-After` response header (value is seconds until the next window boundary). Wait that many seconds before retrying. Do not retry immediately — the fixed-window counter will still reject the request.
 
 Rate limits:
+
 - `POST /api/v1/validate` and `GET /api/v1/reports/:id`: 100 requests per minute per API key (enforced by Better Auth).
 - `GET /api/v1/reports` (listing): 600 requests per minute per owner across all auth modes.
 - `POST /api/artifacts/staging`: per-actor hourly attempt window (check `Retry-After`).
@@ -179,13 +183,13 @@ For scope failures and internal errors, only `content[0].text` is set.
 
 ### Error code table
 
-| JSON-RPC code | Name | When |
-|---|---|---|
-| `-32600` | `InvalidRequest` | Missing required OAuth scope. `validate` and `read-report` require the `validate` scope; `submit-feedback` requires `feedback:write`; `list-feedback-candidates` requires `feedback:read`. |
-| `-32602` | `InvalidParams` | Tool arguments exceed 2 MiB, or the `validate` arguments do not match `ValidationRequestSchema`. Check `structuredContent.error.fieldErrors`. |
-| `-32001` | `report_not_found` | The `reportId` does not exist or belongs to a different account (unified-404). |
-| `-32002` | `idempotency_conflict_payload_mismatch` | The same `idempotencyKey` was submitted before with a different payload. Use a new `idempotencyKey` for a different feedback event. |
-| `-32603` | `InternalError` | Repository or service failure. `data.correlationId` carries the pivot id for support escalation. |
+| JSON-RPC code | Name                                    | When                                                                                                                                                                                       |
+| ------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `-32600`      | `InvalidRequest`                        | Missing required OAuth scope. `validate` and `read-report` require the `validate` scope; `submit-feedback` requires `feedback:write`; `list-feedback-candidates` requires `feedback:read`. |
+| `-32602`      | `InvalidParams`                         | Tool arguments exceed 2 MiB, or the `validate` arguments do not match `ValidationRequestSchema`. Check `structuredContent.error.fieldErrors`.                                              |
+| `-32001`      | `report_not_found`                      | The `reportId` does not exist or belongs to a different account (unified-404).                                                                                                             |
+| `-32002`      | `idempotency_conflict_payload_mismatch` | The same `idempotencyKey` was submitted before with a different payload. Use a new `idempotencyKey` for a different feedback event.                                                        |
+| `-32603`      | `InternalError`                         | Repository or service failure. `data.correlationId` carries the pivot id for support escalation.                                                                                           |
 
 ---
 
@@ -212,6 +216,7 @@ Every evidence item requires at minimum: `id`, `kind`, `role`, `format`, and eit
 ### Artifact not found (`422 artifact_resolution_failed`)
 
 The `r2-artifact://` URI referenced in an evidence item could not be resolved. Causes:
+
 - The artifact was not uploaded before the bundle was submitted.
 - The `requestId` or `artifactId` in the URI does not match what was returned by `POST /api/artifacts/staging`.
 - The artifact was uploaded as non-retained (`retain=false`) and the staging request already completed — re-upload with `retain=true`.

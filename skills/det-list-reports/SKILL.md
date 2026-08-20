@@ -19,11 +19,13 @@ Retrieve a paginated, owner-scoped list of historical validation reports using `
 ## When to use
 
 **Use when:**
+
 - Listing past validation reports with optional filtering by domain, status, or date range.
 - Paginating through a large result set using cursor-based navigation.
 - Checking the aggregate outcome of recent validation runs.
 
 **Do not use when:**
+
 - Fetching the full detail of a single known report — call `GET /api/v1/reports/:id` directly.
 - Listing is needed via MCP or CLI — this endpoint is HTTP only.
 
@@ -54,14 +56,14 @@ GET https://deterministic.sh/api/v1/reports
 
 ### Query parameters
 
-| Parameter | Type | Required | Notes |
-|---|---|---|---|
-| `domain` | string | no | Exact match, e.g. `fluid-simulation`. Pattern: `[a-z0-9_-]+`, max 64 chars. |
-| `status` | string | no | One of `pass`, `fail`, `uncertain`, `not_run`, `errored`. `errored` covers service-failure rows; the other four mirror `ValidationReport.summary.overall_status`. |
-| `from` | ISO-8601 timestamp | no | Inclusive lower bound on `createdAt`. |
-| `to` | ISO-8601 timestamp | no | Inclusive upper bound on `createdAt`. |
-| `cursor` | string | no | Opaque cursor from a previous response's `nextCursor`. Do not parse or construct cursors manually. |
-| `limit` | integer | no | Page size. Default `20`. Min `1`, max `100`. |
+| Parameter | Type               | Required | Notes                                                                                                                                                             |
+| --------- | ------------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `domain`  | string             | no       | Exact match, e.g. `fluid-simulation`. Pattern: `[a-z0-9_-]+`, max 64 chars.                                                                                       |
+| `status`  | string             | no       | One of `pass`, `fail`, `uncertain`, `not_run`, `errored`. `errored` covers service-failure rows; the other four mirror `ValidationReport.summary.overall_status`. |
+| `from`    | ISO-8601 timestamp | no       | Inclusive lower bound on `createdAt`.                                                                                                                             |
+| `to`      | ISO-8601 timestamp | no       | Inclusive upper bound on `createdAt`.                                                                                                                             |
+| `cursor`  | string             | no       | Opaque cursor from a previous response's `nextCursor`. Do not parse or construct cursors manually.                                                                |
+| `limit`   | integer            | no       | Page size. Default `20`. Min `1`, max `100`.                                                                                                                      |
 
 Any validation failure on any parameter returns `400 invalid_request`. Per-field error detail is intentionally not exposed on this endpoint.
 
@@ -107,12 +109,12 @@ The listing endpoint reads from the `report_summary` projection, which is pruned
 
 ## Error codes
 
-| HTTP | Code | Cause |
-|---|---|---|
-| 400 | `invalid_request` | Any query-parameter validation failure, or non-empty GET body. |
-| 401 | `unauthorized` | Missing or invalid API key, or MCP-source actor. |
-| 429 | `rate_limited` | Per-owner cap exceeded. Read `Retry-After`. |
-| 500 | `internal` | Repository or database failure. |
+| HTTP | Code              | Cause                                                          |
+| ---- | ----------------- | -------------------------------------------------------------- |
+| 400  | `invalid_request` | Any query-parameter validation failure, or non-empty GET body. |
+| 401  | `unauthorized`    | Missing or invalid API key, or MCP-source actor.               |
+| 429  | `rate_limited`    | Per-owner cap exceeded. Read `Retry-After`.                    |
+| 500  | `internal`        | Repository or database failure.                                |
 
 ## Examples
 

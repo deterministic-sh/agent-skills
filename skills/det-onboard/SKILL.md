@@ -20,11 +20,13 @@ Walk through the first-time setup for Deterministic: verify the CLI installation
 ## When to use
 
 **Use when:**
+
 - Starting with Deterministic for the first time.
 - Missing CLI or credentials and unsure how to set them up.
 - Wanting an overview of which skill to use at each step.
 
 **Do not use when:**
+
 - Credentials are already configured and a specific command is failing — use det-troubleshoot.
 - Setting up the Deterministic application codebase itself (developer context).
 
@@ -117,15 +119,15 @@ Do not put the API key in a URL, shell history line, or script argument. Use the
 
 Use these skills for each phase of the validation workflow:
 
-| Skill | Transport | Use for |
-|---|---|---|
-| `det-auth` | CLI | Configure, verify, or clear API credentials. |
+| Skill                | Transport          | Use for                                                                  |
+| -------------------- | ------------------ | ------------------------------------------------------------------------ |
+| `det-auth`           | CLI                | Configure, verify, or clear API credentials.                             |
 | `det-prepare-bundle` | local (no network) | Assemble a `ValidationRequest` JSON bundle from simulation output files. |
-| `det-stage-artifact` | HTTP | Upload evidence files larger than 2 MiB before submitting a bundle. |
-| `det-validate` | CLI / HTTP / MCP | Submit a validation bundle and receive a structured report. |
-| `det-validate-quick` | CLI / HTTP | Submit a minimal bundle for rapid spot-checking. |
-| `det-list-reports` | HTTP | List and filter historical validation reports. |
-| `det-troubleshoot` | CLI / HTTP / MCP | Diagnose errors, decode exit codes, and handle rate limits. |
+| `det-stage-artifact` | HTTP               | Upload evidence files larger than 2 MiB before submitting a bundle.      |
+| `det-validate`       | CLI / HTTP / MCP   | Submit a validation bundle and receive a structured report.              |
+| `det-validate-quick` | CLI / HTTP         | Submit a minimal bundle for rapid spot-checking.                         |
+| `det-list-reports`   | HTTP               | List and filter historical validation reports.                           |
+| `det-troubleshoot`   | CLI / HTTP / MCP   | Diagnose errors, decode exit codes, and handle rate limits.              |
 
 The primary workflow for most agents is: `det-prepare-bundle` → (optional `det-stage-artifact` for large files) → `det-validate` → inspect report.
 

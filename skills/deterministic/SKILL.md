@@ -33,27 +33,28 @@ This skill does not implement validation logic, API calls, or parameter inferenc
 
 ## Routing table
 
-| User intent | Trigger phrases | Target sub-skill |
-|---|---|---|
-| Extract from sim output | "convert my VTK/VTU", "extract a surface/probe to parquet", "make an evidence extract from my CFD output" | `det-extract` |
-| Submit / validate | "validate", "check this", "run deterministic on", "verify", "submit for validation" | `det-validate` |
-| Quick submit | "quick check", "single-shot validate", "just run the bundle" | `det-validate-quick` |
-| Prepare bundle | "prepare a bundle", "build evidence", "assemble validation request", "what should I include in the bundle" | `det-prepare-bundle` |
-| Stage artifact | "upload a large file", "stage evidence", "this file is over 2 MiB" | `det-stage-artifact` |
-| Read report | "fetch report", "show me report X", "get report by ID" | `det-read-report` |
-| Interpret results | "is this safe to ship", "what failed", "what do these results mean", "should I block on this", "interpret these results" | `det-interpret-results` |
-| List reports | "list reports", "show recent runs", "what have I submitted" | `det-list-reports` |
-| Submit feedback | "submit feedback", "override this check", "confirm this verdict", "annotate" | `det-submit-feedback` |
-| Feedback stats | "feedback candidates", "rule tuning data", "what checks are overridden" | `det-feedback-candidates` |
-| Auth | "log in", "log out", "set my API key", "who am I", "auth setup" | `det-auth` |
-| Onboard | "first time", "get started", "set up deterministic", "help me start", "what is deterministic", "help", "what can you do" | `det-onboard` |
-| Troubleshoot | "error", "not working", "failing", "401", "rate limited", "exit code", "what does this error mean" | `det-troubleshoot` |
+| User intent             | Trigger phrases                                                                                                          | Target sub-skill          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| Extract from sim output | "convert my VTK/VTU", "extract a surface/probe to parquet", "make an evidence extract from my CFD output"                | `det-extract`             |
+| Submit / validate       | "validate", "check this", "run deterministic on", "verify", "submit for validation"                                      | `det-validate`            |
+| Quick submit            | "quick check", "single-shot validate", "just run the bundle"                                                             | `det-validate-quick`      |
+| Prepare bundle          | "prepare a bundle", "build evidence", "assemble validation request", "what should I include in the bundle"               | `det-prepare-bundle`      |
+| Stage artifact          | "upload a large file", "stage evidence", "this file is over 2 MiB"                                                       | `det-stage-artifact`      |
+| Read report             | "fetch report", "show me report X", "get report by ID"                                                                   | `det-read-report`         |
+| Interpret results       | "is this safe to ship", "what failed", "what do these results mean", "should I block on this", "interpret these results" | `det-interpret-results`   |
+| List reports            | "list reports", "show recent runs", "what have I submitted"                                                              | `det-list-reports`        |
+| Submit feedback         | "submit feedback", "override this check", "confirm this verdict", "annotate"                                             | `det-submit-feedback`     |
+| Feedback stats          | "feedback candidates", "rule tuning data", "what checks are overridden"                                                  | `det-feedback-candidates` |
+| Auth                    | "log in", "log out", "set my API key", "who am I", "auth setup"                                                          | `det-auth`                |
+| Onboard                 | "first time", "get started", "set up deterministic", "help me start", "what is deterministic", "help", "what can you do" | `det-onboard`             |
+| Troubleshoot            | "error", "not working", "failing", "401", "rate limited", "exit code", "what does this error mean"                       | `det-troubleshoot`        |
 
 ## Routing rules
 
 **Routing is based on intent, not execution context.** A user saying "validate this run" routes to `det-validate` regardless of whether credentials are present. Missing credentials are handled by the target skill (which checks `$DETERMINISTIC_API_KEY` and surfaces auth errors), or by routing to `det-auth` only when the user explicitly asks for auth setup.
 
 **Multi-step flows** dispatch in sequence. Examples:
+
 - "validate this and tell me if it's safe" → `det-validate` → `det-interpret-results`
 - "fetch report X and tell me what to fix" → `det-read-report` → `det-interpret-results`
 - "submit feedback overriding the regime check" → ensure the report exists (use `det-read-report` if needed) → `det-submit-feedback`
@@ -86,6 +87,7 @@ Routing: `det-validate`. Invoke that skill, which will infer parameters, pick tr
 User: "fetch report 7c8a9f12-... and tell me if I can ship"
 
 Routing:
+
 1. `det-read-report` with `reportId = 7c8a9f12-...`
 2. `det-interpret-results` on the returned report
 

@@ -18,12 +18,14 @@ Query aggregated reviewer-feedback statistics grouped by domain, scenario, regim
 ## When to use
 
 **Use when:**
+
 - You want to find which checks reviewers have overridden most often in a given domain or scenario.
 - You need parameter-value distributions from past overrides to inform a rule calibration.
 - You want to detect high-uncertainty checks that may indicate gaps in the check's evidence requirements.
 - You are preparing a rule-set update and need data on where the automated checks diverge from reviewer judgment.
 
 **Do not use when:**
+
 - You need the result of a specific report — use `det-read-report` instead.
 - You do not have a domain value — the endpoint requires `domain` and returns `400` without it.
 
@@ -35,11 +37,11 @@ Query aggregated reviewer-feedback statistics grouped by domain, scenario, regim
 
 ## Transport selection
 
-| Transport | Available? | Notes |
-|---|---|---|
-| CLI | No | The `det` CLI does not support this endpoint. |
-| HTTP | Yes | `GET /api/v1/reviewer-feedback/candidates` |
-| MCP | Yes | `list-feedback-candidates` tool, requires `feedback:read` scope |
+| Transport | Available? | Notes                                                           |
+| --------- | ---------- | --------------------------------------------------------------- |
+| CLI       | No         | The `det` CLI does not support this endpoint.                   |
+| HTTP      | Yes        | `GET /api/v1/reviewer-feedback/candidates`                      |
+| MCP       | Yes        | `list-feedback-candidates` tool, requires `feedback:read` scope |
 
 ## Steps
 
@@ -52,11 +54,11 @@ Authorization: Bearer det_live_<key-id>_<secret>
 
 Optional query parameters:
 
-| Parameter | Required | Notes |
-|---|---|---|
-| `domain` | **Yes** | Canonical domain string. Returns `400 invalid_request` if absent. |
-| `scenario` | No | Filter to a specific scenario identifier. |
-| `regime` | No | Filter to a specific operating regime (e.g. `laminar`, `turbulent`). |
+| Parameter  | Required | Notes                                                                |
+| ---------- | -------- | -------------------------------------------------------------------- |
+| `domain`   | **Yes**  | Canonical domain string. Returns `400 invalid_request` if absent.    |
+| `scenario` | No       | Filter to a specific scenario identifier.                            |
+| `regime`   | No       | Filter to a specific operating regime (e.g. `laminar`, `turbulent`). |
 
 ```http
 # With optional filters
@@ -128,20 +130,20 @@ Response is capped at **200 rows**, sorted by `latestAction` descending (most re
 
 **`CandidateGroup` fields:**
 
-| Field | Type | Notes |
-|---|---|---|
-| `domain` | string | Canonical domain |
-| `scenario` | string \| null | Null when absent from the original report context |
-| `regime` | string \| null | Null when absent |
-| `scopeKind` | `"check"` \| `"claim"` | Report-scope events are not surfaced as candidates |
-| `scopeId` | string | The check ID or claim ID targeted |
-| `parameterName` | string \| null | Null when no `parameterName` was recorded |
-| `totalEvents` | number | Total feedback events in this group |
-| `actions` | object | Count per action: `confirm`, `override`, `annotate` |
-| `latestAction` | ISO 8601 string | Most-recent event timestamp in the group |
-| `inferredValueDistribution` | object \| null | Present when the group has numeric-parseable `parameterValue`s; fields: `samples`, `min`, `max`, `median` |
-| `categoricalDistribution` | object \| null | Present instead of `inferredValueDistribution` when values are non-numeric; maps value → count |
-| `exampleReportIds` | string[] | Up to 5 example report IDs from the group |
+| Field                       | Type                   | Notes                                                                                                     |
+| --------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------- |
+| `domain`                    | string                 | Canonical domain                                                                                          |
+| `scenario`                  | string \| null         | Null when absent from the original report context                                                         |
+| `regime`                    | string \| null         | Null when absent                                                                                          |
+| `scopeKind`                 | `"check"` \| `"claim"` | Report-scope events are not surfaced as candidates                                                        |
+| `scopeId`                   | string                 | The check ID or claim ID targeted                                                                         |
+| `parameterName`             | string \| null         | Null when no `parameterName` was recorded                                                                 |
+| `totalEvents`               | number                 | Total feedback events in this group                                                                       |
+| `actions`                   | object                 | Count per action: `confirm`, `override`, `annotate`                                                       |
+| `latestAction`              | ISO 8601 string        | Most-recent event timestamp in the group                                                                  |
+| `inferredValueDistribution` | object \| null         | Present when the group has numeric-parseable `parameterValue`s; fields: `samples`, `min`, `max`, `median` |
+| `categoricalDistribution`   | object \| null         | Present instead of `inferredValueDistribution` when values are non-numeric; maps value → count            |
+| `exampleReportIds`          | string[]               | Up to 5 example report IDs from the group                                                                 |
 
 **Reading the data:**
 
@@ -152,11 +154,11 @@ Response is capped at **200 rows**, sorted by `latestAction` descending (most re
 
 ## Error handling
 
-| HTTP status | Error code | MCP code | Cause | Resolution |
-|---|---|---|---|---|
-| `400` | `invalid_request` | `-32602 InvalidParams` | `domain` query parameter is absent | Include `?domain=<canonical-domain>` in the request |
-| `401` | (plain text) | `-32600 InvalidRequest` | Missing/invalid API key, or missing `feedback:read` scope (MCP) | Use a valid API key; for MCP, obtain a token with `feedback:read` |
-| `500` | `internal` | `-32603 InternalError` | Repository failure (message redacted) | Retry; contact support if persistent |
+| HTTP status | Error code        | MCP code                | Cause                                                           | Resolution                                                        |
+| ----------- | ----------------- | ----------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `400`       | `invalid_request` | `-32602 InvalidParams`  | `domain` query parameter is absent                              | Include `?domain=<canonical-domain>` in the request               |
+| `401`       | (plain text)      | `-32600 InvalidRequest` | Missing/invalid API key, or missing `feedback:read` scope (MCP) | Use a valid API key; for MCP, obtain a token with `feedback:read` |
+| `500`       | `internal`        | `-32603 InternalError`  | Repository failure (message redacted)                           | Retry; contact support if persistent                              |
 
 ## Examples
 

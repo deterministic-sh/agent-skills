@@ -17,11 +17,13 @@ Assemble a `ValidationRequest` JSON bundle from available simulation context, in
 ## When to use
 
 **Use when:**
+
 - You have simulation output files but no pre-built bundle.
 - You need to infer `domain`, `context`, or `mode` from file extensions, config files, or solver output.
 - You are about to call `det-validate` and want a validated, well-formed bundle first.
 
 **Do not use when:**
+
 - The bundle JSON is already complete and passes schema — go straight to `det-validate`.
 - You are uploading large evidence files (>2 MiB) — use `det-stage-artifact` for those, then reference the artifact URIs in the bundle.
 
@@ -63,15 +65,15 @@ Assemble a `ValidationRequest` JSON bundle from available simulation context, in
 
 ## Parameter inference heuristics
 
-| Signal | Inferred field | Notes |
-|---|---|---|
-| `turbulenceProperties` / `RASModel` / `LESModel` in config | `context.operating_regime` = `turbulent` | |
-| `Re < 2300` from log or `laminarFlow` keyword | `context.operating_regime` = `laminar` | |
-| `steady` in solver name or `steadyState` time scheme | `context.time_basis` = `steady` | |
-| `transient` or `pimple`/`piso` in solver name | `context.time_basis` = `transient` | |
-| `fvSolution`, `blockMesh`, `snappyHexMesh` | `context.method` = `FVM` | |
-| `μ` / `nu` value found in `transportProperties` | `context.parameters.kinematic_viscosity` | |
-| `ρ` / `rho` value found in `thermophysicalProperties` | `context.parameters.density` | |
+| Signal                                                     | Inferred field                           | Notes |
+| ---------------------------------------------------------- | ---------------------------------------- | ----- |
+| `turbulenceProperties` / `RASModel` / `LESModel` in config | `context.operating_regime` = `turbulent` |       |
+| `Re < 2300` from log or `laminarFlow` keyword              | `context.operating_regime` = `laminar`   |       |
+| `steady` in solver name or `steadyState` time scheme       | `context.time_basis` = `steady`          |       |
+| `transient` or `pimple`/`piso` in solver name              | `context.time_basis` = `transient`       |       |
+| `fvSolution`, `blockMesh`, `snappyHexMesh`                 | `context.method` = `FVM`                 |       |
+| `μ` / `nu` value found in `transportProperties`            | `context.parameters.kinematic_viscosity` |       |
+| `ρ` / `rho` value found in `thermophysicalProperties`      | `context.parameters.density`             |       |
 
 ## `context_provenance` — admitted paths and tags
 
@@ -79,17 +81,19 @@ When a field value was inferred by you (the agent) rather than explicitly provid
 
 **Admitted paths** (any other path is rejected with `400 invalid_context_provenance_path`):
 
-| Category | Paths |
-|---|---|
-| Verdict-affecting | `context.method`, `context.operating_regime` |
-| Descriptive | `context.scenario`, `context.time_basis` |
+| Category            | Paths                                                                                                          |
+| ------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Verdict-affecting   | `context.method`, `context.operating_regime`                                                                   |
+| Descriptive         | `context.scenario`, `context.time_basis`                                                                       |
 | Physical parameters | `context.parameters.dynamic_viscosity`, `context.parameters.kinematic_viscosity`, `context.parameters.density` |
 
 **Tags:**
+
 - `llm_inferred` — you derived the value from heuristics or pattern matching.
 - `llm_normalized` — the caller stated a value but you converted or canonicalized it (e.g. "Laminar" → `laminar`).
 
 **NOT admitted for provenance** (do not declare provenance entries for these):
+
 - `context.fluid_id`
 - `context.result_source`
 - `context.claimed_units.*`
@@ -112,6 +116,7 @@ If a file on the denylist appears to contain simulation data, ask the caller to 
 ## Output interpretation
 
 The bundle is ready when:
+
 - `ValidationRequestSchema` parse succeeds with no `fieldErrors`.
 - All inferred fields have a corresponding `context_provenance` entry.
 - No denylist files are referenced.

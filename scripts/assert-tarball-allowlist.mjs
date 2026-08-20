@@ -32,13 +32,7 @@ import { readFileSync } from 'node:fs'
 // paths WITHOUT the `package/` prefix (relative to the package root), while
 // `tar -tzf <real-tarball>` reports paths WITH the `package/` prefix (the
 // archive root) — including the bare `package/skills/` directory entry.
-const ALLOWLIST = [
-  /^skills\/.+$/,
-  /^skills\/$/,
-  /^README\.md$/,
-  /^LICENSE$/,
-  /^package\.json$/,
-]
+const ALLOWLIST = [/^skills\/.+$/, /^skills\/$/, /^README\.md$/, /^LICENSE$/, /^package\.json$/]
 
 function isAllowed(filePath) {
   const normalized = filePath.startsWith('package/') ? filePath.slice('package/'.length) : filePath
@@ -73,11 +67,15 @@ function main() {
   }
 
   if (offenders.length === 0) {
-    process.stdout.write(`assert-tarball-allowlist: ok (${desc.files.length} file(s) inside allowlist)\n`)
+    process.stdout.write(
+      `assert-tarball-allowlist: ok (${desc.files.length} file(s) inside allowlist)\n`,
+    )
     process.exit(0)
   }
 
-  process.stderr.write('assert-tarball-allowlist: FAIL — tarball contains paths outside the allowlist.\n')
+  process.stderr.write(
+    'assert-tarball-allowlist: FAIL — tarball contains paths outside the allowlist.\n',
+  )
   for (const o of offenders) process.stderr.write(`  ${o}\n`)
   process.exit(1)
 }

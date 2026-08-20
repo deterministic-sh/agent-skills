@@ -17,11 +17,13 @@ Fetch a Deterministic validation report by ID and present its overall status, pe
 ## When to use
 
 **Use when:**
+
 - You have a `reportId` from a previous `det validate` run or MCP `validate` call and need the full result.
 - A downstream step requires the pass/fail/uncertain verdict before proceeding.
 - You want to surface which checks failed and their status.
 
 **Do not use when:**
+
 - You do not yet have a `reportId` — call `det-validate` first.
 - You want to decide what to do about the results — use `det-interpret-results` for that.
 
@@ -34,11 +36,11 @@ Fetch a Deterministic validation report by ID and present its overall status, pe
 
 Three equivalent transports are available. Choose based on your runtime context.
 
-| Transport | When to use |
-|---|---|
-| CLI | Interactive terminal use, shell scripts, CI pipelines where `det` is installed |
-| HTTP | Any language that can issue HTTP requests; works when the CLI is not available |
-| MCP | Running inside an MCP host (Claude desktop, VS Code Copilot, ChatGPT) with an active Deterministic MCP connection |
+| Transport | When to use                                                                                                       |
+| --------- | ----------------------------------------------------------------------------------------------------------------- |
+| CLI       | Interactive terminal use, shell scripts, CI pipelines where `det` is installed                                    |
+| HTTP      | Any language that can issue HTTP requests; works when the CLI is not available                                    |
+| MCP       | Running inside an MCP host (Claude desktop, VS Code Copilot, ChatGPT) with an active Deterministic MCP connection |
 
 All three return the same `ReportResponse` payload.
 
@@ -130,21 +132,21 @@ A successful response has this shape (HTTP 200 / MCP `isError: false`):
 
 **Overall status meanings:**
 
-| `report.summary.overall_status` | `report.recommendation.action` | Meaning |
-|---|---|---|
-| `pass` | `accept` | All checks passed; report is consistent with claimed parameters |
-| `fail` | `reject` | One or more checks failed; do not treat results as validated |
-| `uncertain` | `escalate` | Checks ran but could not reach a definitive verdict; human review warranted |
+| `report.summary.overall_status` | `report.recommendation.action` | Meaning                                                                     |
+| ------------------------------- | ------------------------------ | --------------------------------------------------------------------------- |
+| `pass`                          | `accept`                       | All checks passed; report is consistent with claimed parameters             |
+| `fail`                          | `reject`                       | One or more checks failed; do not treat results as validated                |
+| `uncertain`                     | `escalate`                     | Checks ran but could not reach a definitive verdict; human review warranted |
 
 **Per-check `status` values:**
 
-| Value | Meaning |
-|---|---|
-| `pass` | Check succeeded |
-| `fail` | Check detected an inconsistency or violation |
-| `uncertain` | Check ran but could not determine a verdict (e.g. insufficient evidence) |
-| `not_run` | Check was skipped (domain/regime not applicable, or dependency check failed) |
-| `timeout` | Check exceeded its time budget; treated as `uncertain` for claim derivation |
+| Value       | Meaning                                                                      |
+| ----------- | ---------------------------------------------------------------------------- |
+| `pass`      | Check succeeded                                                              |
+| `fail`      | Check detected an inconsistency or violation                                 |
+| `uncertain` | Check ran but could not determine a verdict (e.g. insufficient evidence)     |
+| `not_run`   | Check was skipped (domain/regime not applicable, or dependency check failed) |
+| `timeout`   | Check exceeded its time budget; treated as `uncertain` for claim derivation  |
 
 When reporting results, list `fail` checks first, then `uncertain`, then `timeout`.
 
@@ -152,14 +154,15 @@ When reporting results, list `fail` checks first, then `uncertain`, then `timeou
 
 Both HTTP and MCP use a unified 404 — there is no distinction between a report that does not exist and one that belongs to a different actor. This prevents information leakage.
 
-| Condition | HTTP | MCP |
-|---|---|---|
-| Report not found or belongs to another actor | `404 report_not_found` | `isError: true`, `structuredContent.error.code = "not_found"` |
-| Invalid or missing API key | `401 unauthorized` (plain text) | `isError: true`, code `-32600 InvalidRequest` |
-| `reportId` not a valid UUID | `400` or `422` | `isError: true`, code `-32602 InvalidParams` |
-| Repository failure | `500 internal` (message redacted) | `isError: true`, code `-32603 InternalError`; `data.correlationId` available for support |
+| Condition                                    | HTTP                              | MCP                                                                                      |
+| -------------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------- |
+| Report not found or belongs to another actor | `404 report_not_found`            | `isError: true`, `structuredContent.error.code = "not_found"`                            |
+| Invalid or missing API key                   | `401 unauthorized` (plain text)   | `isError: true`, code `-32600 InvalidRequest`                                            |
+| `reportId` not a valid UUID                  | `400` or `422`                    | `isError: true`, code `-32602 InvalidParams`                                             |
+| Repository failure                           | `500 internal` (message redacted) | `isError: true`, code `-32603 InternalError`; `data.correlationId` available for support |
 
 On a `not_found` error, verify:
+
 1. The `reportId` is copied exactly — no truncation, no extra whitespace.
 2. The credential matches the one used when the report was created (reports are actor-scoped).
 3. The report was not submitted to a different environment (production vs. preview host).

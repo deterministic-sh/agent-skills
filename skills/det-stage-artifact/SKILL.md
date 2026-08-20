@@ -16,11 +16,13 @@ Upload an evidence file to the Deterministic staging endpoint (`POST /api/artifa
 ## When to use
 
 **Use when:**
+
 - An individual evidence file is larger than 2 MiB, or the combined bundle would exceed the 2 MiB body cap.
 - You need to reference the file from an `evidence` item using `uri: "r2-artifact://<requestId>/<artifactId>"`.
 - The file is in a supported format: `csv`, `json`, `parquet`, or `hdf5` (HDF5 is gated in production — check with the server if unsupported format errors appear).
 
 **Do not use when:**
+
 - The evidence value fits inline (under 2 MiB total bundle). Just embed it in the `evidence[].value` field.
 - The file is not simulation evidence (no staging of source code, configs, or any file on the denylist below).
 
@@ -114,18 +116,19 @@ Reject the request and tell the caller before making any network call.
 
 ## Error handling
 
-| Status | Code | Action |
-|---|---|---|
-| `400` | malformed multipart or invalid key segment | Fix `requestId` / `artifactId` characters or the multipart construction. Check for non-ASCII chars, spaces, or leading/trailing dots. |
-| `401` | plain text `unauthorized` | API key is missing, malformed, or expired. Set `DETERMINISTIC_API_KEY` or re-issue the key. |
-| `411` | `length_required` | `Content-Length` header is missing or not a valid integer. The full file size must be known before the request starts. |
-| `413` (`reason: 'request_body'`) | `payload_too_large` | Total body exceeds 101 MiB. Split into multiple staging calls. |
-| `413` (`reason: 'artifact'`) | `payload_too_large` | File exceeds 100 MiB per-file cap. Reduce or split. |
-| `429` (`rate_limited`) | — | Per-actor hourly attempt window exceeded. Wait and retry. |
-| `429` (`quota_exceeded`) | `reason: 'object_count'` or `'byte_total'` | Daily retention quota reached. Contact Deterministic support or reduce retained artifacts. |
-| `500` | — | Infrastructure failure. Log the error, wait, and retry once. If it persists, report the issue. |
+| Status                           | Code                                       | Action                                                                                                                                |
+| -------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `400`                            | malformed multipart or invalid key segment | Fix `requestId` / `artifactId` characters or the multipart construction. Check for non-ASCII chars, spaces, or leading/trailing dots. |
+| `401`                            | plain text `unauthorized`                  | API key is missing, malformed, or expired. Set `DETERMINISTIC_API_KEY` or re-issue the key.                                           |
+| `411`                            | `length_required`                          | `Content-Length` header is missing or not a valid integer. The full file size must be known before the request starts.                |
+| `413` (`reason: 'request_body'`) | `payload_too_large`                        | Total body exceeds 101 MiB. Split into multiple staging calls.                                                                        |
+| `413` (`reason: 'artifact'`)     | `payload_too_large`                        | File exceeds 100 MiB per-file cap. Reduce or split.                                                                                   |
+| `429` (`rate_limited`)           | —                                          | Per-actor hourly attempt window exceeded. Wait and retry.                                                                             |
+| `429` (`quota_exceeded`)         | `reason: 'object_count'` or `'byte_total'` | Daily retention quota reached. Contact Deterministic support or reduce retained artifacts.                                            |
+| `500`                            | —                                          | Infrastructure failure. Log the error, wait, and retry once. If it persists, report the issue.                                        |
 
 **Artifact miss at validation time** (`422 artifact_resolution_failed`): if the validate call says the artifact was not found, confirm that:
+
 - `retain=true` was used during staging.
 - The `requestId` and `artifactId` in the URI exactly match what was returned by this endpoint.
 - The same API key (same `userId`) is used for both staging and validation.

@@ -18,11 +18,13 @@ Submit a `ValidationRequest` bundle to Deterministic and interpret the resulting
 ## When to use
 
 **Use when:**
+
 - You have a simulation evidence bundle (or can construct one) and need a verdict.
 - You need physical plausibility checks, regime classification, or claim verification.
 - You need an auditable `reportId` to attach to a simulation run record.
 
 **Do not use when:**
+
 - Evidence files are larger than 2 MiB — stage them first with `det-stage-artifact`, then reference the artifact URIs here.
 - You only need to assemble the bundle, not submit it — use `det-prepare-bundle`.
 - You want to retrieve a previously run report — use `det read-report <id>` or `GET /api/v1/reports/:id`.
@@ -49,16 +51,16 @@ det validate --bundle <path> [flag overrides]
 
 Override flags apply on top of the bundle JSON:
 
-| Flag | Wire path |
-|---|---|
-| `--domain` | `domain` |
-| `--mode` | `mode` |
-| `--result-source` | `result_source` |
-| `--scenario` | `context.scenario` |
-| `--method` | `context.method` |
+| Flag                 | Wire path                  |
+| -------------------- | -------------------------- |
+| `--domain`           | `domain`                   |
+| `--mode`             | `mode`                     |
+| `--result-source`    | `result_source`            |
+| `--scenario`         | `context.scenario`         |
+| `--method`           | `context.method`           |
 | `--operating-regime` | `context.operating_regime` |
-| `--fluid-id` | `context.fluid_id` |
-| `--time-basis` | `context.time_basis` |
+| `--fluid-id`         | `context.fluid_id`         |
+| `--time-basis`       | `context.time_basis`       |
 
 Use `--pretty` for human-readable output. Use `--json` for machine-readable output (default on non-TTY). Use `--verbose` to see which fields the flag layer touched.
 
@@ -109,14 +111,14 @@ The MCP surface shares the same `ValidationRequestSchema` as HTTP. Note: `userCh
 
 If the bundle is missing fields, infer them from available context and declare provenance for each inferred value.
 
-| Signal | Inferred field |
-|---|---|
-| `.foam`, `.cas`, `.dat`, `.vtk` extensions | `domain` = `fluid-simulation` |
+| Signal                                         | Inferred field                           |
+| ---------------------------------------------- | ---------------------------------------- |
+| `.foam`, `.cas`, `.dat`, `.vtk` extensions     | `domain` = `fluid-simulation`            |
 | `turbulenceProperties`, `RASModel`, `LESModel` | `context.operating_regime` = `turbulent` |
-| `Re < 2300` from log, `laminarFlow` keyword | `context.operating_regime` = `laminar` |
-| `steadyState` time scheme, `simple` solver | `context.time_basis` = `steady` |
-| `pimple`, `piso` solver | `context.time_basis` = `transient` |
-| `fvSolution`, `blockMesh` | `context.method` = `FVM` |
+| `Re < 2300` from log, `laminarFlow` keyword    | `context.operating_regime` = `laminar`   |
+| `steadyState` time scheme, `simple` solver     | `context.time_basis` = `steady`          |
+| `pimple`, `piso` solver                        | `context.time_basis` = `transient`       |
+| `fvSolution`, `blockMesh`                      | `context.method` = `FVM`                 |
 
 ## `context_provenance` — admitted paths
 
@@ -140,12 +142,12 @@ Inferred provenance can only lower or cap confidence — it never raises a verdi
 
 ### Verdict (`report.summary.overall_status`)
 
-| Status | Meaning | Recommended action |
-|---|---|---|
-| `pass` | All run checks satisfied the claims. | Accept the result. Record the `reportId`. |
-| `fail` | One or more checks found the evidence does not satisfy the claims. | Review failing `checks[]` entries. Fix the simulation or re-examine the claims. |
+| Status      | Meaning                                                                                                           | Recommended action                                                                   |
+| ----------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `pass`      | All run checks satisfied the claims.                                                                              | Accept the result. Record the `reportId`.                                            |
+| `fail`      | One or more checks found the evidence does not satisfy the claims.                                                | Review failing `checks[]` entries. Fix the simulation or re-examine the claims.      |
 | `uncertain` | Checks ran but could not reach a deterministic verdict (e.g. LLM-inferred parameter dependency, phase ambiguity). | Review `checks[].verdict_reason`. Provide explicit parameters to remove uncertainty. |
-| `not_run` | No checks ran (missing evidence, unsupported domain, etc.). | Check `coverage[].not_run` for reasons. Ensure evidence items are properly shaped. |
+| `not_run`   | No checks ran (missing evidence, unsupported domain, etc.).                                                       | Check `coverage[].not_run` for reasons. Ensure evidence items are properly shaped.   |
 
 ### Per-check `status` values
 
@@ -159,34 +161,34 @@ Inferred provenance can only lower or cap confidence — it never raises a verdi
 
 ### CLI exit codes
 
-| Code | Meaning | Action |
-|---|---|---|
-| `0` | Report received, recommendation `accept`. | Proceed. |
-| `1` | Report received, recommendation `escalate` or `reject`. | Investigate failing checks. |
-| `2` | Caller error — HTTP 4xx, preflight failure, bundle load failure, missing API key. | Fix the bundle or credentials before retrying. |
-| `3` | Server error — HTTP 5xx. | Wait and retry once. If persistent, report with `correlationId`. |
-| `4` | Local IO / network failure — no HTTP response. | Check network connectivity and host URL. |
-| `64` | Internal CLI bug — uncaught exception. | Report the full output. |
+| Code | Meaning                                                                           | Action                                                           |
+| ---- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `0`  | Report received, recommendation `accept`.                                         | Proceed.                                                         |
+| `1`  | Report received, recommendation `escalate` or `reject`.                           | Investigate failing checks.                                      |
+| `2`  | Caller error — HTTP 4xx, preflight failure, bundle load failure, missing API key. | Fix the bundle or credentials before retrying.                   |
+| `3`  | Server error — HTTP 5xx.                                                          | Wait and retry once. If persistent, report with `correlationId`. |
+| `4`  | Local IO / network failure — no HTTP response.                                    | Check network connectivity and host URL.                         |
+| `64` | Internal CLI bug — uncaught exception.                                            | Report the full output.                                          |
 
 ### HTTP status codes
 
-| Status | Code | Action |
-|---|---|---|
-| `200` | — | Parse `report`. |
-| `400 invalid_request` | — | Fix `fieldErrors`. Check `invalid_context_provenance_path` / `invalid_context_provenance_conflict` for provenance issues. |
-| `401` | — | Set or refresh the API key. |
-| `413 payload_too_large` | — | Bundle exceeds 2 MiB. Stage large evidence files with `det-stage-artifact`. |
-| `422 invalid_request` | `artifact_resolution_failed` | The artifact URI was not found. Confirm `retain=true` was used during staging and the `requestId`/`artifactId` match. |
-| `422 invalid_request` | `declared_format_mismatch` | The declared `format` does not match the artifact's byte signature. Omit `format` to let the engine detect it, or re-upload with the correct label. |
-| `500 internal` | — | Retry once. Use `correlationId` to report the incident. |
+| Status                  | Code                         | Action                                                                                                                                              |
+| ----------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `200`                   | —                            | Parse `report`.                                                                                                                                     |
+| `400 invalid_request`   | —                            | Fix `fieldErrors`. Check `invalid_context_provenance_path` / `invalid_context_provenance_conflict` for provenance issues.                           |
+| `401`                   | —                            | Set or refresh the API key.                                                                                                                         |
+| `413 payload_too_large` | —                            | Bundle exceeds 2 MiB. Stage large evidence files with `det-stage-artifact`.                                                                         |
+| `422 invalid_request`   | `artifact_resolution_failed` | The artifact URI was not found. Confirm `retain=true` was used during staging and the `requestId`/`artifactId` match.                               |
+| `422 invalid_request`   | `declared_format_mismatch`   | The declared `format` does not match the artifact's byte signature. Omit `format` to let the engine detect it, or re-upload with the correct label. |
+| `500 internal`          | —                            | Retry once. Use `correlationId` to report the incident.                                                                                             |
 
 ### MCP JSON-RPC errors
 
-| Code | Name | Action |
-|---|---|---|
-| `-32600` | `InvalidRequest` | Missing `validate` scope. Re-authorize with the `validate` scope. |
-| `-32602` | `InvalidParams` | Arguments exceed 2 MiB or fail `ValidationRequestSchema`. Fix `structuredContent.error.fieldErrors`. |
-| `-32603` | `InternalError` | Repository failure after service completion. Use `data.correlationId` to report. |
+| Code     | Name             | Action                                                                                               |
+| -------- | ---------------- | ---------------------------------------------------------------------------------------------------- |
+| `-32600` | `InvalidRequest` | Missing `validate` scope. Re-authorize with the `validate` scope.                                    |
+| `-32602` | `InvalidParams`  | Arguments exceed 2 MiB or fail `ValidationRequestSchema`. Fix `structuredContent.error.fieldErrors`. |
+| `-32603` | `InternalError`  | Repository failure after service completion. Use `data.correlationId` to report.                     |
 
 Service-level failures (the engine ran but the submission was invalid) return a `CallToolResult` with `isError: true` and `structuredContent.error`, not a JSON-RPC protocol error.
 

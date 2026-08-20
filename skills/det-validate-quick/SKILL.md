@@ -16,11 +16,13 @@ Submit a bundle file to Deterministic and return the verdict and failing checks.
 ## When to use
 
 **Use when:**
+
 - The bundle JSON file is already on disk and fully formed.
 - You need a fast pass/fail signal without multi-step setup.
 - You are running in a CI pipeline that produces the bundle as a build artifact.
 
 **Do not use when:**
+
 - The bundle needs to be assembled from raw simulation files — use `det-prepare-bundle` first.
 - Evidence files exceed 2 MiB — stage them first with `det-stage-artifact`.
 - You need full per-check detail or want to tune parameters — use `det-validate` instead.
@@ -43,11 +45,13 @@ Submit a bundle file to Deterministic and return the verdict and failing checks.
 2. **Submit.**
 
    CLI:
+
    ```bash
    det validate --bundle <path>
    ```
 
    HTTP:
+
    ```bash
    curl -s -X POST https://deterministic.sh/api/v1/validate \
      -H "Authorization: Bearer $DETERMINISTIC_API_KEY" \
@@ -63,34 +67,34 @@ Submit a bundle file to Deterministic and return the verdict and failing checks.
 
 ## Output interpretation
 
-| `overall_status` | Pass/fail signal | Next step |
-|---|---|---|
-| `pass` | Pass | Record `reportId`. Proceed. |
-| `fail` | Fail | List failing check ids. Investigate. |
-| `uncertain` | Soft fail | List uncertain checks and their `verdict_reason`. Consider providing explicit parameters. |
-| `not_run` | Inconclusive | Check `coverage[].not_run`. Likely missing evidence or wrong domain. |
+| `overall_status` | Pass/fail signal | Next step                                                                                 |
+| ---------------- | ---------------- | ----------------------------------------------------------------------------------------- |
+| `pass`           | Pass             | Record `reportId`. Proceed.                                                               |
+| `fail`           | Fail             | List failing check ids. Investigate.                                                      |
+| `uncertain`      | Soft fail        | List uncertain checks and their `verdict_reason`. Consider providing explicit parameters. |
+| `not_run`        | Inconclusive     | Check `coverage[].not_run`. Likely missing evidence or wrong domain.                      |
 
 ## Exit codes (CLI)
 
-| Code | Meaning |
-|---|---|
-| `0` | Verdict: `accept`. |
-| `1` | Verdict: `escalate` or `reject`. |
-| `2` | Caller error (bad bundle, missing API key, HTTP 4xx). |
-| `3` | Server error (HTTP 5xx). |
-| `4` | Network failure (no HTTP response). |
-| `64` | CLI internal bug. |
+| Code | Meaning                                               |
+| ---- | ----------------------------------------------------- |
+| `0`  | Verdict: `accept`.                                    |
+| `1`  | Verdict: `escalate` or `reject`.                      |
+| `2`  | Caller error (bad bundle, missing API key, HTTP 4xx). |
+| `3`  | Server error (HTTP 5xx).                              |
+| `4`  | Network failure (no HTTP response).                   |
+| `64` | CLI internal bug.                                     |
 
 ## HTTP status codes
 
-| Status | Action |
-|---|---|
-| `200` | Parse `report`. |
-| `400` | Bundle fails schema or provenance validation. Fix `fieldErrors` in the response. |
-| `401` | API key missing or invalid. |
-| `413` | Bundle exceeds 2 MiB body cap. Stage large evidence with `det-stage-artifact`. |
-| `422` | Artifact URI not found or format mismatch. Verify staging was done with `retain=true`. |
-| `500` | Server error. Retry once; report with `correlationId` if persistent. |
+| Status | Action                                                                                 |
+| ------ | -------------------------------------------------------------------------------------- |
+| `200`  | Parse `report`.                                                                        |
+| `400`  | Bundle fails schema or provenance validation. Fix `fieldErrors` in the response.       |
+| `401`  | API key missing or invalid.                                                            |
+| `413`  | Bundle exceeds 2 MiB body cap. Stage large evidence with `det-stage-artifact`.         |
+| `422`  | Artifact URI not found or format mismatch. Verify staging was done with `retain=true`. |
+| `500`  | Server error. Retry once; report with `correlationId` if persistent.                   |
 
 ## Examples
 

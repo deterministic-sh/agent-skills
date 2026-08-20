@@ -20,12 +20,14 @@ Configure, verify, and clear Deterministic API credentials using the `det auth` 
 ## When to use
 
 **Use when:**
+
 - Setting up credentials for the first time.
 - Checking which host and API key are currently active.
 - Removing stored credentials before switching accounts or hosts.
 - Scripting CI authentication via environment variable.
 
 **Do not use when:**
+
 - Debugging a 401 error from an existing integration — use det-troubleshoot.
 - Calling the HTTP or MCP API directly — set `DETERMINISTIC_API_KEY` in the environment and pass `Authorization: Bearer $DETERMINISTIC_API_KEY` in requests.
 
@@ -42,12 +44,12 @@ CLI only. HTTP and MCP callers do not use these commands; they read credentials 
 
 When any `det` command runs, the CLI resolves the API key and host in this priority order:
 
-| Priority | API key source | Host source |
-|---|---|---|
-| 1 (highest) | `$DETERMINISTIC_API_KEY` env var | `--host` flag |
-| 2 | `~/.config/deterministic/credentials.json` | `$DETERMINISTIC_HOST` env var |
-| 3 | — | `credentials.json` `host` field |
-| 4 (lowest) | — | `https://deterministic.sh` (built-in default) |
+| Priority    | API key source                             | Host source                                   |
+| ----------- | ------------------------------------------ | --------------------------------------------- |
+| 1 (highest) | `$DETERMINISTIC_API_KEY` env var           | `--host` flag                                 |
+| 2           | `~/.config/deterministic/credentials.json` | `$DETERMINISTIC_HOST` env var                 |
+| 3           | —                                          | `credentials.json` `host` field               |
+| 4 (lowest)  | —                                          | `https://deterministic.sh` (built-in default) |
 
 `XDG_CONFIG_HOME` overrides the `~/.config` base directory when set.
 
@@ -109,6 +111,7 @@ det auth whoami
 ```
 
 The key display:
+
 - If the key matches `det_(live|test)_<key-id>_<secret>`, the secret tail is elided and the output shows `det_live_<key-id>_<redacted>`.
 - Otherwise the entire key is replaced with `<redacted>`.
 

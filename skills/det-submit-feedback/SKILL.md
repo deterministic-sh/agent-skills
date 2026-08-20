@@ -17,11 +17,13 @@ Submit reviewer feedback targeting a report, a check, or a claim. Records a `Fee
 ## When to use
 
 **Use when:**
+
 - A reviewer has inspected a failing or uncertain check and wants to record a disposition.
 - An automated pipeline wants to programmatically confirm an accepted result for audit purposes.
 - You need to annotate a check with a parameter value or note without changing its status.
 
 **Do not use when:**
+
 - You have not yet fetched the report — call `det-read-report` first to verify the checks you want to target.
 - You are using the CLI — the `det` CLI does not support feedback submission. Use HTTP or MCP instead.
 - The `reportId` does not belong to the credential you are using — the endpoint returns a unified 404 for both not-found and ownership-mismatch cases.
@@ -35,11 +37,11 @@ Submit reviewer feedback targeting a report, a check, or a claim. Records a `Fee
 
 ## Transport selection
 
-| Transport | Available? | Notes |
-|---|---|---|
-| CLI | No | The `det` CLI does not support feedback submission. |
-| HTTP | Yes | `POST /api/v1/reports/:id/feedback` |
-| MCP | Yes | `submit-feedback` tool, requires `feedback:write` scope |
+| Transport | Available? | Notes                                                   |
+| --------- | ---------- | ------------------------------------------------------- |
+| CLI       | No         | The `det` CLI does not support feedback submission.     |
+| HTTP      | Yes        | `POST /api/v1/reports/:id/feedback`                     |
+| MCP       | Yes        | `submit-feedback` tool, requires `feedback:write` scope |
 
 ## `FeedbackInput` shape
 
@@ -76,16 +78,16 @@ The canonical schema is defined in `specs/96-reviewer-feedback-loop.spec.md`. Th
 
 **Field rules:**
 
-| Field | Required | Constraint |
-|---|---|---|
-| `scope` | Yes | One of `{ kind: "report" }`, `{ kind: "check", checkId: string }`, `{ kind: "claim", claimId: string }` |
-| `action` | Yes | `"confirm"` \| `"override"` \| `"annotate"` |
-| `verdict` | When `scope.kind = "report"` | `"accept"` \| `"reject"`. Error if present for check/claim scope. |
-| `targetStatus` | When `scope.kind = "check"` | `"pass"` \| `"fail"` \| `"uncertain"` \| `"not_run"` |
-| `parameterName` | Paired with `parameterValue` | Must both be present or both absent |
-| `parameterValue` | Paired with `parameterName` | Canonical JSON string; max 1024 bytes; must not be JSON `null` |
-| `note` | No | Max 4096 bytes |
-| `idempotencyKey` | Yes | Max 256 chars. Auto-generate a UUID v4 if not supplied by the caller. |
+| Field            | Required                     | Constraint                                                                                              |
+| ---------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `scope`          | Yes                          | One of `{ kind: "report" }`, `{ kind: "check", checkId: string }`, `{ kind: "claim", claimId: string }` |
+| `action`         | Yes                          | `"confirm"` \| `"override"` \| `"annotate"`                                                             |
+| `verdict`        | When `scope.kind = "report"` | `"accept"` \| `"reject"`. Error if present for check/claim scope.                                       |
+| `targetStatus`   | When `scope.kind = "check"`  | `"pass"` \| `"fail"` \| `"uncertain"` \| `"not_run"`                                                    |
+| `parameterName`  | Paired with `parameterValue` | Must both be present or both absent                                                                     |
+| `parameterValue` | Paired with `parameterName`  | Canonical JSON string; max 1024 bytes; must not be JSON `null`                                          |
+| `note`           | No                           | Max 4096 bytes                                                                                          |
+| `idempotencyKey` | Yes                          | Max 256 chars. Auto-generate a UUID v4 if not supplied by the caller.                                   |
 
 ## Steps
 
@@ -154,19 +156,19 @@ On success (HTTP `200` / MCP `isError: false`):
 
 ## Error handling
 
-| HTTP status | Error code | MCP code | Cause | Resolution |
-|---|---|---|---|---|
-| `401` | (plain text) | `-32600 InvalidRequest` | Missing/invalid API key, or session-based caller | Use an API key in the `Authorization` header; session cookies are rejected |
-| `401` | — | `-32600 InvalidRequest` | Missing `feedback:write` scope (MCP) | Obtain an OAuth token that includes the `feedback:write` scope |
-| `404` | `report_not_found` | `-32001` | Report does not exist, or belongs to another actor | Verify the `reportId` and that the credential was used to create it |
-| `409` | `idempotency_conflict_payload_mismatch` | `-32002` | Same `idempotencyKey`, different payload for this report+actor | Use a different `idempotencyKey` for a genuinely different feedback event |
-| `413` | `note_too_long` | — | `note` exceeds 4096 bytes | Truncate the note |
-| `413` | `parameter_value_too_large` | — | `parameterValue` exceeds 1024 bytes | Reduce the JSON value or split across multiple events |
-| `415` | `unsupported_media_type` | — | `Content-Type` is not `application/json` | Set the header correctly |
-| `400` | `payload_invalid` | `-32602 InvalidParams` | JSON parse failure or Zod schema failure | Inspect the response `fieldErrors` for the specific path |
-| `400` | `scope_invalid` | `-32602 InvalidParams` | `scope.kind` is not `"report"`, `"check"`, or `"claim"` | Use one of the three allowed scope shapes |
-| `400` | `verdict_misapplied` | `-32602 InvalidParams` | `verdict` present for a non-report scope, or absent for a report scope | Include `verdict` only when `scope.kind = "report"` |
-| `500` | `internal` | `-32603 InternalError` | Unhandled exception (message redacted) | Retry with the same `idempotencyKey`; contact support with the `data.correlationId` if it persists |
+| HTTP status | Error code                              | MCP code                | Cause                                                                  | Resolution                                                                                         |
+| ----------- | --------------------------------------- | ----------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `401`       | (plain text)                            | `-32600 InvalidRequest` | Missing/invalid API key, or session-based caller                       | Use an API key in the `Authorization` header; session cookies are rejected                         |
+| `401`       | —                                       | `-32600 InvalidRequest` | Missing `feedback:write` scope (MCP)                                   | Obtain an OAuth token that includes the `feedback:write` scope                                     |
+| `404`       | `report_not_found`                      | `-32001`                | Report does not exist, or belongs to another actor                     | Verify the `reportId` and that the credential was used to create it                                |
+| `409`       | `idempotency_conflict_payload_mismatch` | `-32002`                | Same `idempotencyKey`, different payload for this report+actor         | Use a different `idempotencyKey` for a genuinely different feedback event                          |
+| `413`       | `note_too_long`                         | —                       | `note` exceeds 4096 bytes                                              | Truncate the note                                                                                  |
+| `413`       | `parameter_value_too_large`             | —                       | `parameterValue` exceeds 1024 bytes                                    | Reduce the JSON value or split across multiple events                                              |
+| `415`       | `unsupported_media_type`                | —                       | `Content-Type` is not `application/json`                               | Set the header correctly                                                                           |
+| `400`       | `payload_invalid`                       | `-32602 InvalidParams`  | JSON parse failure or Zod schema failure                               | Inspect the response `fieldErrors` for the specific path                                           |
+| `400`       | `scope_invalid`                         | `-32602 InvalidParams`  | `scope.kind` is not `"report"`, `"check"`, or `"claim"`                | Use one of the three allowed scope shapes                                                          |
+| `400`       | `verdict_misapplied`                    | `-32602 InvalidParams`  | `verdict` present for a non-report scope, or absent for a report scope | Include `verdict` only when `scope.kind = "report"`                                                |
+| `500`       | `internal`                              | `-32603 InternalError`  | Unhandled exception (message redacted)                                 | Retry with the same `idempotencyKey`; contact support with the `data.correlationId` if it persists |
 
 **`idempotency_conflict_payload_mismatch`:** This error means an event with the same `idempotencyKey` exists but with a different payload. If you want to amend the feedback, use a new `idempotencyKey`. If you are retrying a failed submission, reuse the original payload exactly.
 
