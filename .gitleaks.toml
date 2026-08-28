@@ -1,16 +1,20 @@
 # Gitleaks policy for Deterministic scans (mirror export + publish tarballs).
-# Extends the default ruleset; the ONLY allowances are the documented
-# API-key PLACEHOLDER idioms used in skills/docs examples — short toy ids
-# (k1/k7m4n9/abc123) and angle-bracket markers (<key-id>/<secret>/<redacted>).
-# A real key (long random secret segment, no brackets) still trips the scan.
+# Extends the default ruleset with one custom rule for the key shape the
+# service actually issues: `det_` + 64 random ASCII letters (Better Auth
+# apiKey plugin, `defaultPrefix: 'det_'`, default key length). The default
+# ruleset alone does not detect that shape (verified against the pinned
+# 8.21.2 binary), so this rule is what makes the publish-time scan real.
+# Docs/skills placeholders (`det_…`, `det_<key>`) cannot match — the character
+# after `det_` is non-alphanumeric — so no allowlist is needed or configured.
+# Scope: keys from the supported issuance paths (dashboard / first-key mint),
+# which never pass a prefix; the raw Better Auth endpoint's optional custom
+# prefix is a separate hardening item (issue 1362).
 # Referenced by runbook checklist §3h (docs/operations/cli-publish.md).
 [extend]
 useDefault = true
 
-[allowlist]
-description = "Deterministic docs/skills placeholder keys — not real credentials"
-regexTarget = "line"
-regexes = [
-  '''det_(live|test)_[A-Za-z0-9]{0,8}_?(<[a-z-]+>|abc123|secretpart|xxx)''',
-  '''det_(live|test)_<key[-a-z]*>''',
-]
+[[rules]]
+id = "deterministic-api-key"
+description = "Deterministic API key (det_ + long random alphanumeric run)"
+regex = '''det_[A-Za-z0-9]{32,}'''
+keywords = ["det_"]

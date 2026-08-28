@@ -28,7 +28,7 @@ Upload an evidence file to the Deterministic staging endpoint (`POST /api/artifa
 
 ## Prerequisites
 
-- An API key: `det_live_<key-id>_<secret>` set in `DETERMINISTIC_API_KEY` or passed as `Authorization: Bearer <key>`.
+- An API key (starts with `det_`) set in `DETERMINISTIC_API_KEY` or passed as `Authorization: Bearer <key>`.
 - The `Content-Length` of the file must be known before upload. Chunked / unknown-length bodies are rejected with `411 length_required`.
 - Per-file cap: **100 MiB**. Per-request body cap: **101 MiB**.
 
@@ -52,7 +52,7 @@ This skill uses HTTP only (`POST /api/artifacts/staging`). There is no MCP or CL
 
    ```http
    POST /api/artifacts/staging HTTP/1.1
-   Authorization: Bearer det_live_<key-id>_<secret>
+   Authorization: Bearer det_…
    Content-Type: multipart/form-data; boundary=<boundary>
    Content-Length: <total-body-byte-length>
 
@@ -139,7 +139,7 @@ Reject the request and tell the caller before making any network call.
 
 ```bash
 curl -X POST https://deterministic.sh/api/artifacts/staging \
-  -H "Authorization: Bearer det_live_k1_abc123" \
+  -H "Authorization: Bearer det_…" \
   -H "Content-Length: $(wc -c < axial_velocity.csv)" \
   -F "requestId=req_pipe_001" \
   -F "artifactId=art_axial_vel" \
@@ -174,7 +174,7 @@ After confirmation:
 
 ```bash
 curl -X POST https://deterministic.sh/api/artifacts/staging \
-  -H "Authorization: Bearer det_live_k1_abc123" \
+  -H "Authorization: Bearer det_…" \
   -H "Content-Length: 19189760" \
   -F "requestId=req_cavity_run_002" \
   -F "artifactId=art_pressure_field" \

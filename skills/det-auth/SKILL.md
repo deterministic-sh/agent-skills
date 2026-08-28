@@ -106,14 +106,13 @@ Print the active host, a redacted version of the API key, and which source provi
 ```bash
 det auth whoami
 # host: https://deterministic.sh
-# api key: det_live_abc123_<redacted>
+# api key: <redacted>
 # source: env
 ```
 
 The key display:
 
-- If the key matches `det_(live|test)_<key-id>_<secret>`, the secret tail is elided and the output shows `det_live_<key-id>_<redacted>`.
-- Otherwise the entire key is replaced with `<redacted>`.
+- The key value is never printed: for any key Deterministic issues (`det_` followed by a random string) `det auth whoami` shows `api key: <redacted>`.
 
 `source` is `env` when `$DETERMINISTIC_API_KEY` is set; `file` when credentials come from `credentials.json`.
 
@@ -123,7 +122,7 @@ Exit codes: `0` on success, `2` when no credentials are found.
 
 ```bash
 # Set the API key — preferred over storing in a file for CI environments.
-export DETERMINISTIC_API_KEY=det_live_<key-id>_<secret>
+export DETERMINISTIC_API_KEY=det_…
 
 # Override the host without using --host on every command.
 export DETERMINISTIC_HOST=https://deterministic.sh
@@ -143,18 +142,18 @@ det auth login
 
 det auth whoami
 # host: https://deterministic.sh
-# api key: det_live_k7m4n9_<redacted>
+# api key: <redacted>
 # source: file
 ```
 
 ### Example 2 — CI environment variable, verify active credentials
 
 ```bash
-export DETERMINISTIC_API_KEY=det_live_k7m4n9_<secret>
+export DETERMINISTIC_API_KEY=det_…
 
 det auth whoami
 # host: https://deterministic.sh
-# api key: det_live_k7m4n9_<redacted>
+# api key: <redacted>
 # source: env
 ```
 

@@ -95,7 +95,7 @@ The canonical schema is defined in `specs/96-reviewer-feedback-loop.spec.md`. Th
 
 ```http
 POST /api/v1/reports/<reportId>/feedback HTTP/1.1
-Authorization: Bearer det_live_<key-id>_<secret>
+Authorization: Bearer det_…
 Content-Type: application/json
 
 {
@@ -180,7 +180,7 @@ A reviewer accepts the overall report after inspecting the evidence.
 
 ```http
 POST /api/v1/reports/5f1c6e9e-1e0a-4f84-9a1e-a14b60bb3f6a/feedback HTTP/1.1
-Authorization: Bearer det_live_abc123_secretpart
+Authorization: Bearer det_…
 Content-Type: application/json
 
 {
@@ -267,7 +267,7 @@ An agent records a note against a specific claim without changing its status.
 
 ```http
 POST /api/v1/reports/5f1c6e9e-1e0a-4f84-9a1e-a14b60bb3f6a/feedback HTTP/1.1
-Authorization: Bearer det_live_abc123_secretpart
+Authorization: Bearer det_…
 Content-Type: application/json
 
 {

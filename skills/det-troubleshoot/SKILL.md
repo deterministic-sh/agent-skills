@@ -101,7 +101,7 @@ Plain-text `unauthorized` body (no JSON envelope). Causes:
 
 1. `Authorization` header is missing — add `Authorization: Bearer $DETERMINISTIC_API_KEY`.
 2. The API key is expired or revoked — generate a new key in the dashboard.
-3. The API key format is wrong — keys follow `det_live_<key-id>_<secret>` or `det_test_<key-id>_<secret>`.
+3. The API key format is wrong — keys start with `det_` followed by a random string (no `live`/`test` segment, no key id).
 4. MCP-source actor on an HTTP-only endpoint — MCP OAuth tokens do not work against the HTTP API endpoints and vice versa.
 
 Verify with `det auth whoami` (CLI) or by checking whether `$DETERMINISTIC_API_KEY` is set in the environment.
@@ -229,7 +229,7 @@ Run through this list in order:
 
 1. `[ -n "$DETERMINISTIC_API_KEY" ] && echo "set" || echo "not set"` — is the variable set? Never print the full key.
 2. `det auth whoami` — does it print a host and key without error?
-3. Check the key format: does it start with `det_live_` or `det_test_`?
+3. Check the key format: does it start with `det_`?
 4. Verify the host: `det auth whoami` shows the active host. Confirm it matches where you expect to send requests.
 5. Check for `http://` with a non-loopback host: the CLI rejects this. Use `https://` for all non-localhost targets.
 6. If using MCP: confirm your OAuth token has the `validate` scope by checking the `WWW-Authenticate` challenge or the OAuth discovery endpoint (`/.well-known/oauth-protected-resource`).
@@ -249,7 +249,7 @@ det validate --bundle bundle.json
 Fix:
 
 ```bash
-export DETERMINISTIC_API_KEY=det_live_<key-id>_<secret>
+export DETERMINISTIC_API_KEY=det_…
 det validate --bundle bundle.json
 ```
 

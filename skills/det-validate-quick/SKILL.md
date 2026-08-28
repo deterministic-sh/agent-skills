@@ -31,7 +31,7 @@ Submit a bundle file to Deterministic and return the verdict and failing checks.
 ## Prerequisites
 
 - **CLI**: `det` binary on `PATH`; `DETERMINISTIC_API_KEY` set.
-- **HTTP**: API key as `Authorization: Bearer det_live_<key-id>_<secret>`.
+- **HTTP**: API key (starts with `det_`) as `Authorization: Bearer det_…`.
 
 ## Transport selection
 
@@ -101,7 +101,7 @@ Submit a bundle file to Deterministic and return the verdict and failing checks.
 ### Example 1 — CLI quick submission
 
 ```bash
-export DETERMINISTIC_API_KEY=det_live_k1_abc123
+export DETERMINISTIC_API_KEY=det_…
 
 det validate --bundle ./runs/cavity_re100/bundle.json
 # exit 0 → pass

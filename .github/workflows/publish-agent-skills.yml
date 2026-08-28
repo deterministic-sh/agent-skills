@@ -146,9 +146,9 @@ jobs:
         # explicit download + checksum verification + explicit --source
         # invocation, never the unpinned gitleaks-action. Markdown skill
         # files are scanned because they can accidentally embed example API
-        # keys / tokens; --config .gitleaks.toml allowlists the documented
-        # placeholder-key idioms (det_live_<key-id> etc.) so example content
-        # doesn't trip the default ruleset.
+        # keys / tokens; --config .gitleaks.toml adds the deterministic-api-key
+        # rule (det_ + long random run — the shape the service issues, which
+        # the default ruleset misses); placeholders like det_… cannot match it.
         env:
           GITLEAKS_VERSION: '8.21.2'
           GITLEAKS_SHA256_X64: '5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba'

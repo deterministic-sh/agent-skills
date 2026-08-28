@@ -32,7 +32,7 @@ Submit a `ValidationRequest` bundle to Deterministic and interpret the resulting
 ## Prerequisites
 
 - **CLI**: `det` binary available on `PATH`; API key in `DETERMINISTIC_API_KEY` or configured via `det auth login`.
-- **HTTP**: API key as `Authorization: Bearer det_live_<key-id>_<secret>`.
+- **HTTP**: API key (starts with `det_`) as `Authorization: Bearer det_…`.
 - **MCP**: OAuth access token with the `validate` scope; server at `https://<host>/mcp`.
 
 ## Transport selection
@@ -74,7 +74,7 @@ cat bundle.json | det validate --bundle -
 
 ```http
 POST /api/v1/validate HTTP/1.1
-Authorization: Bearer det_live_<key-id>_<secret>
+Authorization: Bearer det_…
 Content-Type: application/json
 
 <ValidationRequest JSON body>
@@ -197,7 +197,7 @@ Service-level failures (the engine ran but the submission was invalid) return a 
 ### Example 1 — CLI, bundle file with flag overrides
 
 ```bash
-export DETERMINISTIC_API_KEY=det_live_k1_abc123
+export DETERMINISTIC_API_KEY=det_…
 
 det validate \
   --bundle ./cavity_bundle.json \
@@ -212,7 +212,7 @@ Exit code `0` on accept, `1` on escalate/reject.
 
 ```bash
 curl -s -X POST https://deterministic.sh/api/v1/validate \
-  -H "Authorization: Bearer det_live_k1_abc123" \
+  -H "Authorization: Bearer det_…" \
   -H "Content-Type: application/json" \
   -d '{
     "version": "0.1",

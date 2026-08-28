@@ -49,7 +49,7 @@ Query aggregated reviewer-feedback statistics grouped by domain, scenario, regim
 
 ```http
 GET /api/v1/reviewer-feedback/candidates?domain=fluid-simulation HTTP/1.1
-Authorization: Bearer det_live_<key-id>_<secret>
+Authorization: Bearer det_…
 ```
 
 Optional query parameters:
@@ -63,7 +63,7 @@ Optional query parameters:
 ```http
 # With optional filters
 GET /api/v1/reviewer-feedback/candidates?domain=fluid-simulation&scenario=lid-driven-cavity-Re100&regime=laminar HTTP/1.1
-Authorization: Bearer det_live_<key-id>_<secret>
+Authorization: Bearer det_…
 ```
 
 ### MCP

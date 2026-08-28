@@ -35,7 +35,7 @@ HTTP only. There is no equivalent CLI command or MCP tool for listing reports.
 
 ## Prerequisites
 
-- `$DETERMINISTIC_API_KEY` set to a valid API key (format: `det_live_<key-id>_<secret>`).
+- `$DETERMINISTIC_API_KEY` set to a valid API key (keys start with `det_`).
 - The key must have been issued by the account that owns the reports you want to list.
 
 ## Authentication

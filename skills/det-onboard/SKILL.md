@@ -85,7 +85,7 @@ If either shows nothing or an error, continue to Step 3.
 **Option A — environment variable (recommended for CI and agent environments)**
 
 ```bash
-export DETERMINISTIC_API_KEY=det_live_<key-id>_<secret>
+export DETERMINISTIC_API_KEY=det_…
 ```
 
 Verify it is active:
@@ -188,10 +188,10 @@ det --version
 det auth whoami  # exits 2
 
 # Step 3: configure via env var
-export DETERMINISTIC_API_KEY=det_live_k7m4n9_<secret>
+export DETERMINISTIC_API_KEY=det_…
 det auth whoami
 # host: https://deterministic.sh
-# api key: det_live_k7m4n9_<redacted>
+# api key: <redacted>
 # source: env
 
 # Step 5: test validation

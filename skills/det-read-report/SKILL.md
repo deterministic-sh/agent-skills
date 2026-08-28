@@ -67,7 +67,7 @@ Exit codes: `0` = report fetched (check verdict for pass/fail), `2` = 4xx (bad I
 
 ```http
 GET /api/v1/reports/<reportId> HTTP/1.1
-Authorization: Bearer det_live_<key-id>_<secret>
+Authorization: Bearer det_…
 ```
 
 Optional: `X-Correlation-Id: <your-id>` — echoed in the response header for log correlation.
@@ -172,7 +172,7 @@ On a `not_found` error, verify:
 ### Example 1 — CLI fetch, TTY pretty output
 
 ```bash
-export DETERMINISTIC_API_KEY=det_live_abc123_secretpart
+export DETERMINISTIC_API_KEY=det_…
 
 det get report 5f1c6e9e-1e0a-4f84-9a1e-a14b60bb3f6a
 ```
