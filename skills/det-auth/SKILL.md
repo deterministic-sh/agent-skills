@@ -106,13 +106,13 @@ Print the active host, a redacted version of the API key, and which source provi
 ```bash
 det auth whoami
 # host: https://deterministic.sh
-# api key: <redacted>
+# api key: det_ab…<redacted>
 # source: env
 ```
 
 The key display:
 
-- The key value is never printed: for any key Deterministic issues (`det_` followed by a random string) `det auth whoami` shows `api key: <redacted>`.
+- The full key value is never printed: for a key Deterministic issues, `det auth whoami` shows the first 6 characters — the same prefix the dashboard's key list shows — followed by `…<redacted>`; any other value shows bare `api key: <redacted>`.
 
 `source` is `env` when `$DETERMINISTIC_API_KEY` is set; `file` when credentials come from `credentials.json`.
 
@@ -142,7 +142,7 @@ det auth login
 
 det auth whoami
 # host: https://deterministic.sh
-# api key: <redacted>
+# api key: det_ab…<redacted>
 # source: file
 ```
 
@@ -153,7 +153,7 @@ export DETERMINISTIC_API_KEY=det_…
 
 det auth whoami
 # host: https://deterministic.sh
-# api key: <redacted>
+# api key: det_ab…<redacted>
 # source: env
 ```
 

@@ -191,7 +191,7 @@ det auth whoami  # exits 2
 export DETERMINISTIC_API_KEY=det_…
 det auth whoami
 # host: https://deterministic.sh
-# api key: <redacted>
+# api key: det_ab…<redacted>
 # source: env
 
 # Step 5: test validation
