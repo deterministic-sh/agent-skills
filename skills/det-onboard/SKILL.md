@@ -125,7 +125,7 @@ Use these skills for each phase of the validation workflow:
 | `det-prepare-bundle` | local (no network) | Assemble a `ValidationRequest` JSON bundle from simulation output files. |
 | `det-stage-artifact` | HTTP               | Upload evidence files larger than 2 MiB before submitting a bundle.      |
 | `det-validate`       | CLI / HTTP / MCP   | Submit a validation bundle and receive a structured report.              |
-| `det-validate-quick` | CLI / HTTP         | Submit a minimal bundle for rapid spot-checking.                         |
+| `det-validate-quick` | CLI / HTTP         | Spot-check a ready bundle — or the bundled sample when there is none.    |
 | `det-list-reports`   | HTTP               | List and filter historical validation reports.                           |
 | `det-troubleshoot`   | CLI / HTTP / MCP   | Diagnose errors, decode exit codes, and handle rate limits.              |
 
@@ -133,48 +133,51 @@ The primary workflow for most agents is: `det-prepare-bundle` → (optional `det
 
 ### Step 5 — Run a test validation
 
-Once credentials are configured, verify end-to-end connectivity with a minimal bundle. Save this to `test-bundle.json`:
+Once credentials are configured, verify end-to-end connectivity with the bundled
+sample request — a real benchmark case (fully developed laminar pipe flow)
+shipped inside the CLI and served at
+`https://deterministic.sh/docs/examples/sample-request.json`. Nothing to author,
+no data of the user's own required.
 
-```json
-{
-  "version": "0.1",
-  "domain": "fluid-simulation",
-  "mode": "instant",
-  "context": {
-    "scenario": "onboard-check",
-    "method": "FVM",
-    "operating_regime": "laminar",
-    "time_basis": "steady",
-    "claimed_units": { "velocity": "m/s" }
-  },
-  "evidence": [
-    {
-      "id": "e1",
-      "kind": "scalar",
-      "role": "primary_result",
-      "format": "json",
-      "schema": { "u": "number" },
-      "value": [{ "u": 0.22 }]
-    }
-  ],
-  "claims": [
-    {
-      "id": "c1",
-      "kind": "range",
-      "subject": "e1.u",
-      "expectation": "velocity is in a physically plausible range"
-    }
-  ]
-}
-```
-
-Submit it:
+CLI:
 
 ```bash
-det validate --bundle test-bundle.json --pretty
+det validate --sample --pretty
 ```
 
-A `pass`, `fail`, or `uncertain` result all confirm the connection and credentials are working. An exit code of `2` or `4` indicates an auth or network issue — use det-troubleshoot.
+**The sample is expected to escalate, and `det` exits 1.** That is the successful
+outcome, not an error: the case has one uncertain check and no definitive
+failures, and uncertain is not fail. Branch on `report.recommendation.action`,
+never on the exit code alone. Exit codes `2` or `4` _do_ indicate an auth or
+network problem — use det-troubleshoot.
+
+HTTP (no CLI available) — three phases, each reporting its own failure. Never
+pipe the fetch straight into the submit: stdin is reserved for the credential,
+and a pipe hides a failed fetch.
+
+```bash
+# 1. Fetch the payload (-f so an HTTP 4xx/5xx fails this step)
+curl -fsS https://deterministic.sh/docs/examples/sample-request.json -o sample-request.json
+
+# 2. Confirm it parses locally before submitting
+jq empty sample-request.json
+
+# 3. Submit it; the key is fed through curl's stdin config, never through argv
+curl -fsS https://deterministic.sh/api/v1/validate \
+  -H "Content-Type: application/json" \
+  -d @sample-request.json \
+  -K - <<CURLCFG | jq '.report.summary'
+header = "Authorization: Bearer $DETERMINISTIC_API_KEY"
+CURLCFG
+```
+
+A `200 OK` with `summary.overall_status` confirms connectivity, with the same
+expected-escalate reading as the CLI path.
+
+If auth was already confirmed in Step 2 or Step 3 and this step then fails
+(fetch, parse, or submit), report the confirmed auth success and report the
+sample failure as its own outcome — never as an auth failure. Say in the summary
+that the run used the bundled sample rather than the user's own data.
 
 ## Examples
 
@@ -194,8 +197,8 @@ det auth whoami
 # api key: det_ab…<redacted>
 # source: env
 
-# Step 5: test validation
-det validate --bundle test-bundle.json --pretty
+# Step 5: test validation on the bundled sample (expected to escalate, exit 1)
+det validate --sample --pretty
 ```
 
 ### Example 2 — HTTP-only setup (no CLI required)
@@ -207,12 +210,16 @@ det validate --bundle test-bundle.json --pretty
 # Step 3: set it if missing (replace with your actual key)
 export DETERMINISTIC_API_KEY="$YOUR_API_KEY"
 
-# Step 5: test with curl
-curl -s \
-  -H "Authorization: Bearer $DETERMINISTIC_API_KEY" \
+# Step 5: fetch the sample, check it, then submit it
+curl -fsS https://deterministic.sh/docs/examples/sample-request.json -o sample-request.json
+jq empty sample-request.json
+curl -fsS "https://deterministic.sh/api/v1/validate" \
   -H "Content-Type: application/json" \
-  -d @test-bundle.json \
-  "https://deterministic.sh/api/v1/validate" | jq '.report.summary'
+  -d @sample-request.json \
+  -K - <<CURLCFG | jq '.report.summary'
+header = "Authorization: Bearer $DETERMINISTIC_API_KEY"
+CURLCFG
 ```
 
-A `200 OK` with `summary.overall_status` confirms connectivity.
+A `200 OK` with `summary.overall_status` confirms connectivity — an `escalate`
+recommendation on the sample is the expected result.
