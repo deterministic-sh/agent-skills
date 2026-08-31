@@ -139,12 +139,14 @@ Reject the request and tell the caller before making any network call.
 
 ```bash
 curl -X POST https://deterministic.sh/api/artifacts/staging \
-  -H "Authorization: Bearer det_…" \
   -H "Content-Length: $(wc -c < axial_velocity.csv)" \
   -F "requestId=req_pipe_001" \
   -F "artifactId=art_axial_vel" \
   -F "retain=true" \
-  -F "file=@axial_velocity.csv"
+  -F "file=@axial_velocity.csv" \
+  -K - <<CURLCFG
+header = "Authorization: Bearer $DETERMINISTIC_API_KEY"
+CURLCFG
 ```
 
 Response:
@@ -174,12 +176,14 @@ After confirmation:
 
 ```bash
 curl -X POST https://deterministic.sh/api/artifacts/staging \
-  -H "Authorization: Bearer det_…" \
   -H "Content-Length: 19189760" \
   -F "requestId=req_cavity_run_002" \
   -F "artifactId=art_pressure_field" \
   -F "retain=true" \
-  -F "file=@pressure_field.parquet"
+  -F "file=@pressure_field.parquet" \
+  -K - <<CURLCFG
+header = "Authorization: Bearer $DETERMINISTIC_API_KEY"
+CURLCFG
 ```
 
 Response:

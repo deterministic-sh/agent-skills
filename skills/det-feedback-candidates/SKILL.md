@@ -168,9 +168,10 @@ Identify the most frequently overridden checks in `fluid-simulation` across all 
 
 ```bash
 curl -sf \
-  -H "Authorization: Bearer ${DETERMINISTIC_API_KEY}" \
   "https://api.yourdomain.com/api/v1/reviewer-feedback/candidates?domain=fluid-simulation" \
-  | jq '.candidates | sort_by(-.actions.override) | .[:5] | .[] | {check: .scopeId, overrides: .actions.override, total: .totalEvents}'
+  -K - <<CURLCFG | jq '.candidates | sort_by(-.actions.override) | .[:5] | .[] | {check: .scopeId, overrides: .actions.override, total: .totalEvents}'
+header = "Authorization: Bearer ${DETERMINISTIC_API_KEY}"
+CURLCFG
 ```
 
 Example output (abbreviated):

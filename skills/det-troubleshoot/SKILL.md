@@ -258,18 +258,24 @@ det validate --bundle bundle.json
 ```bash
 while true; do
   response=$(curl -s -w "\n%{http_code}" \
-    -H "Authorization: Bearer $DETERMINISTIC_API_KEY" \
     -H "Content-Type: application/json" \
     -d @bundle.json \
-    "https://deterministic.sh/api/v1/validate")
+    "https://deterministic.sh/api/v1/validate" \
+    -K - <<CURLCFG
+header = "Authorization: Bearer $DETERMINISTIC_API_KEY"
+CURLCFG
+  )
   http_code=$(echo "$response" | tail -1)
   body=$(echo "$response" | head -n -1)
 
   if [ "$http_code" = "429" ]; then
     retry_after=$(curl -sI \
-      -H "Authorization: Bearer $DETERMINISTIC_API_KEY" \
-      "https://deterministic.sh/api/v1/validate" | \
-      grep -i 'retry-after' | awk '{print $2}' | tr -d '\r')
+      "https://deterministic.sh/api/v1/validate" \
+      -K - <<CURLCFG | \
+      grep -i 'retry-after' | awk '{print $2}' | tr -d '\r'
+header = "Authorization: Bearer $DETERMINISTIC_API_KEY"
+CURLCFG
+    )
     echo "Rate limited. Waiting ${retry_after}s..."
     sleep "$retry_after"
   else
@@ -283,11 +289,13 @@ done
 
 ```bash
 curl -s \
-  -H "Authorization: Bearer $DETERMINISTIC_API_KEY" \
   -H "Content-Type: application/json" \
   -d @bad-bundle.json \
-  "https://deterministic.sh/api/v1/validate" | \
+  "https://deterministic.sh/api/v1/validate" \
+  -K - <<CURLCFG | \
   jq '.error.fieldErrors[] | "\(.path): \(.message)"'
+header = "Authorization: Bearer $DETERMINISTIC_API_KEY"
+CURLCFG
 ```
 
 Output:

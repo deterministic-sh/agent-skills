@@ -212,7 +212,6 @@ Exit code `0` on accept, `1` on escalate/reject.
 
 ```bash
 curl -s -X POST https://deterministic.sh/api/v1/validate \
-  -H "Authorization: Bearer det_…" \
   -H "Content-Type: application/json" \
   -d '{
     "version": "0.1",
@@ -246,7 +245,10 @@ curl -s -X POST https://deterministic.sh/api/v1/validate \
         "expectation": "velocity stays within the expected laminar cavity band"
       }
     ]
-  }' | jq '.report.summary'
+  }' \
+  -K - <<CURLCFG | jq '.report.summary'
+header = "Authorization: Bearer $DETERMINISTIC_API_KEY"
+CURLCFG
 ```
 
 ### Example 3 — MCP tool call inside a Claude conversation

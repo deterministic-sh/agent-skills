@@ -103,9 +103,11 @@ Submit a bundle file to Deterministic and return the verdict and failing checks.
 
    ```bash
    curl -s -X POST https://deterministic.sh/api/v1/validate \
-     -H "Authorization: Bearer $DETERMINISTIC_API_KEY" \
      -H "Content-Type: application/json" \
-     -d @<path>
+     -d @<path> \
+     -K - <<CURLCFG
+   header = "Authorization: Bearer $DETERMINISTIC_API_KEY"
+   CURLCFG
    ```
 
 3. **Extract the verdict.** Read `report.summary.overall_status` from the response.
@@ -169,9 +171,12 @@ det validate --bundle ./runs/cavity_re100/bundle.json --json \
 ```bash
 BUNDLE_PATH=./artifacts/sim_bundle.json
 RESPONSE=$(curl -s -X POST https://deterministic.sh/api/v1/validate \
-  -H "Authorization: Bearer $DETERMINISTIC_API_KEY" \
   -H "Content-Type: application/json" \
-  -d @"$BUNDLE_PATH")
+  -d @"$BUNDLE_PATH" \
+  -K - <<CURLCFG
+header = "Authorization: Bearer $DETERMINISTIC_API_KEY"
+CURLCFG
+)
 
 VERDICT=$(echo "$RESPONSE" | jq -r '.report.summary.overall_status')
 REPORT_ID=$(echo "$RESPONSE" | jq -r '.reportId')

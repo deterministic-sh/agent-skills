@@ -198,8 +198,11 @@ CLI exits `1` when `recommendation` is `reject` or `escalate`.
 ```bash
 REPORT_ID="5f1c6e9e-1e0a-4f84-9a1e-a14b60bb3f6a"
 RESPONSE=$(curl -sf \
-  -H "Authorization: Bearer ${DETERMINISTIC_API_KEY}" \
-  "https://api.yourdomain.com/api/v1/reports/${REPORT_ID}")
+  "https://api.yourdomain.com/api/v1/reports/${REPORT_ID}" \
+  -K - <<CURLCFG
+header = "Authorization: Bearer ${DETERMINISTIC_API_KEY}"
+CURLCFG
+)
 
 STATUS=$(echo "$RESPONSE" | jq -r '.summary.overall_status')
 echo "Validation status: $STATUS"
