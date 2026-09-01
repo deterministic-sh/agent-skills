@@ -39,7 +39,7 @@ CLI, HTTP, and MCP.
 
 | Code | Meaning                                                                                    | Common causes                                                                                                                |
 | ---- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| `0`  | Report received; `recommendation.action = accept`. Also: auth login/logout/whoami success. | —                                                                                                                            |
+| `0`  | Report received; `recommendation.action = accept`. Also: auth signup/login/logout/whoami success. | —                                                                                                                            |
 | `1`  | Report received; `recommendation.action = escalate` or `reject`.                           | The validation ran; the simulation evidence did not pass. Review the report.                                                 |
 | `2`  | Caller error — the request was not sent or was rejected before processing.                 | HTTP 4xx response, preflight failure, bundle load failure, missing or invalid API key, credentials file error, invalid host. |
 | `3`  | Server error — HTTP 5xx.                                                                   | Transient Deterministic service failure. Retry with back-off.                                                                |
