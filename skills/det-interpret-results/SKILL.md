@@ -55,15 +55,17 @@ Analyze a Deterministic validation report and answer the four standard post-vali
 | `fail`                          | `reject`                       | Do not ship. Fix failing checks and re-validate.       |
 | `uncertain`                     | `escalate`                     | Do not ship without human review. Route to a reviewer. |
 
+Decide on `recommendation.action`, not on `overall_status`: a check that refused a caller-supplied parameter is `not_run/invalid_parameter`, which keeps `overall_status: pass` but routes to `escalate` and names the check in `escalation_triggers`. Treat that as "you disabled a check", not as a pass.
+
 ## Per-check status → action mapping
 
-| Check status | Action                                                                                                                                                                                    |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pass`       | No action needed.                                                                                                                                                                         |
-| `fail`       | Block shipment. Fix the underlying issue and re-validate. A reviewer may override with `det-submit-feedback` if appropriate.                                                              |
-| `uncertain`  | Do not treat as passing. Either supply more evidence and re-validate, or route for human review via `det-submit-feedback`.                                                                |
-| `not_run`    | Note the gap. This check was not applicable to the current domain/regime, or a prerequisite check failed. No action required unless the gap represents a coverage concern you care about. |
-| `timeout`    | Treat as `uncertain`. The check exceeded its budget. May indicate a large or complex evidence input; consider splitting evidence or contacting support if it recurs.                      |
+| Check status | Action                                                                                                                                                                                                                                                                                                                        |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pass`       | No action needed.                                                                                                                                                                                                                                                                                                             |
+| `fail`       | Block shipment. Fix the underlying issue and re-validate. A reviewer may override with `det-submit-feedback` if appropriate.                                                                                                                                                                                                  |
+| `uncertain`  | Do not treat as passing. Either supply more evidence and re-validate, or route for human review via `det-submit-feedback`.                                                                                                                                                                                                    |
+| `not_run`    | Note the gap. This check was not applicable to the current domain/regime, or a prerequisite check failed. No action required unless the gap represents a coverage concern you care about — **except** `not_run_reason: invalid_parameter`, which means the check refused a value you supplied: fix the value and re-validate. |
+| `timeout`    | Treat as `uncertain`. The check exceeded its budget. May indicate a large or complex evidence input; consider splitting evidence or contacting support if it recurs.                                                                                                                                                          |
 
 ## Output format
 

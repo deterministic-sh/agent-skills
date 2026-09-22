@@ -138,6 +138,8 @@ A successful response has this shape (HTTP 200 / MCP `isError: false`):
 | `fail`                          | `reject`                       | One or more checks failed; do not treat results as validated                |
 | `uncertain`                     | `escalate`                     | Checks ran but could not reach a definitive verdict; human review warranted |
 
+`overall_status: pass` does **not** guarantee `accept`: a check that refused a parameter you supplied is `not_run` with `not_run_reason: invalid_parameter`, which leaves the status `pass` but routes the recommendation to `escalate` and names the check in `escalation_triggers`. Route on `recommendation.action`, not on `overall_status`.
+
 **Per-check `status` values:**
 
 | Value       | Meaning                                                                      |
