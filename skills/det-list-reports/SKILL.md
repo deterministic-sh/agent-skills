@@ -48,6 +48,20 @@ Authorization: Bearer $DETERMINISTIC_API_KEY
 
 No `Content-Type` header is needed for GET requests. Do not send a request body — a non-empty body is rejected with `400 invalid_request`.
 
+## Supported domains
+
+<!-- domains-inventory:start -->
+
+Supported `domain` values (canonical kebab-case ids). The snake_case alias is accepted by `validate` and by the `list-checks` / `describe-domain` catalog tools and canonicalized before anything is stored; stored reports and feedback aggregates carry the canonical id, so read filters such as `GET /api/v1/reports?domain=` and `list-feedback-candidates` must use the canonical form. Generated from the engine check inventory by `npm run generate:agent-surfaces`; do not edit between the markers.
+
+| Domain                  | Alias                   | Checks | Reference                                         |
+| ----------------------- | ----------------------- | ------ | ------------------------------------------------- |
+| `fluid-simulation`      | `fluid_simulation`      | 21     | https://deterministic.sh/docs/domains/cfd/        |
+| `structural-simulation` | `structural_simulation` | 22     | https://deterministic.sh/docs/domains/structural/ |
+| `thermal-simulation`    | `thermal_simulation`    | 16     | https://deterministic.sh/docs/domains/thermal/    |
+
+<!-- domains-inventory:end -->
+
 ## Endpoint
 
 ```

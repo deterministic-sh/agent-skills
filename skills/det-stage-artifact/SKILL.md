@@ -133,6 +133,20 @@ Reject the request and tell the caller before making any network call.
 - The `requestId` and `artifactId` in the URI exactly match what was returned by this endpoint.
 - The same API key (same `userId`) is used for both staging and validation.
 
+## Supported domains
+
+<!-- domains-inventory:start -->
+
+Supported `domain` values (canonical kebab-case ids). The snake_case alias is accepted by `validate` and by the `list-checks` / `describe-domain` catalog tools and canonicalized before anything is stored; stored reports and feedback aggregates carry the canonical id, so read filters such as `GET /api/v1/reports?domain=` and `list-feedback-candidates` must use the canonical form. Generated from the engine check inventory by `npm run generate:agent-surfaces`; do not edit between the markers.
+
+| Domain                  | Alias                   | Checks | Reference                                         |
+| ----------------------- | ----------------------- | ------ | ------------------------------------------------- |
+| `fluid-simulation`      | `fluid_simulation`      | 21     | https://deterministic.sh/docs/domains/cfd/        |
+| `structural-simulation` | `structural_simulation` | 22     | https://deterministic.sh/docs/domains/structural/ |
+| `thermal-simulation`    | `thermal_simulation`    | 16     | https://deterministic.sh/docs/domains/thermal/    |
+
+<!-- domains-inventory:end -->
+
 ## Examples
 
 ### Example 1 — Stage a CSV file retained for validation

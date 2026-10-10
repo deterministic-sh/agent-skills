@@ -179,6 +179,20 @@ If auth was already confirmed in Step 2 or Step 3 and this step then fails
 sample failure as its own outcome — never as an auth failure. Say in the summary
 that the run used the bundled sample rather than the user's own data.
 
+## Supported domains
+
+<!-- domains-inventory:start -->
+
+Supported `domain` values (canonical kebab-case ids). The snake_case alias is accepted by `validate` and by the `list-checks` / `describe-domain` catalog tools and canonicalized before anything is stored; stored reports and feedback aggregates carry the canonical id, so read filters such as `GET /api/v1/reports?domain=` and `list-feedback-candidates` must use the canonical form. Generated from the engine check inventory by `npm run generate:agent-surfaces`; do not edit between the markers.
+
+| Domain                  | Alias                   | Checks | Reference                                         |
+| ----------------------- | ----------------------- | ------ | ------------------------------------------------- |
+| `fluid-simulation`      | `fluid_simulation`      | 21     | https://deterministic.sh/docs/domains/cfd/        |
+| `structural-simulation` | `structural_simulation` | 22     | https://deterministic.sh/docs/domains/structural/ |
+| `thermal-simulation`    | `thermal_simulation`    | 16     | https://deterministic.sh/docs/domains/thermal/    |
+
+<!-- domains-inventory:end -->
+
 ## Examples
 
 ### Example 1 — Full first-time setup with CLI

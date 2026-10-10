@@ -172,6 +172,20 @@ On success (HTTP `200` / MCP `isError: false`):
 
 **`idempotency_conflict_payload_mismatch`:** This error means an event with the same `idempotencyKey` exists but with a different payload. If you want to amend the feedback, use a new `idempotencyKey`. If you are retrying a failed submission, reuse the original payload exactly.
 
+## Supported domains
+
+<!-- domains-inventory:start -->
+
+Supported `domain` values (canonical kebab-case ids). The snake_case alias is accepted by `validate` and by the `list-checks` / `describe-domain` catalog tools and canonicalized before anything is stored; stored reports and feedback aggregates carry the canonical id, so read filters such as `GET /api/v1/reports?domain=` and `list-feedback-candidates` must use the canonical form. Generated from the engine check inventory by `npm run generate:agent-surfaces`; do not edit between the markers.
+
+| Domain                  | Alias                   | Checks | Reference                                         |
+| ----------------------- | ----------------------- | ------ | ------------------------------------------------- |
+| `fluid-simulation`      | `fluid_simulation`      | 21     | https://deterministic.sh/docs/domains/cfd/        |
+| `structural-simulation` | `structural_simulation` | 22     | https://deterministic.sh/docs/domains/structural/ |
+| `thermal-simulation`    | `thermal_simulation`    | 16     | https://deterministic.sh/docs/domains/thermal/    |
+
+<!-- domains-inventory:end -->
+
 ## Examples
 
 ### Example 1 — Report-scope confirmation (HTTP)

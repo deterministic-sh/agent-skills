@@ -70,6 +70,20 @@ Turn native CFD output into a Deterministic-ready **Parquet** extract + an **evi
 - **`--surface` vs `--probe`** are mutually exclusive.
 - Requested `--fields` not present in the extract produce a clear error listing what is available.
 
+## Supported domains
+
+<!-- domains-inventory:start -->
+
+Supported `domain` values (canonical kebab-case ids). The snake_case alias is accepted by `validate` and by the `list-checks` / `describe-domain` catalog tools and canonicalized before anything is stored; stored reports and feedback aggregates carry the canonical id, so read filters such as `GET /api/v1/reports?domain=` and `list-feedback-candidates` must use the canonical form. Generated from the engine check inventory by `npm run generate:agent-surfaces`; do not edit between the markers.
+
+| Domain                  | Alias                   | Checks | Reference                                         |
+| ----------------------- | ----------------------- | ------ | ------------------------------------------------- |
+| `fluid-simulation`      | `fluid_simulation`      | 21     | https://deterministic.sh/docs/domains/cfd/        |
+| `structural-simulation` | `structural_simulation` | 22     | https://deterministic.sh/docs/domains/structural/ |
+| `thermal-simulation`    | `thermal_simulation`    | 16     | https://deterministic.sh/docs/domains/thermal/    |
+
+<!-- domains-inventory:end -->
+
 ## Examples
 
 ### Example 1 — boundary surface of a VTU, pressure + velocity

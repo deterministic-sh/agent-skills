@@ -37,18 +37,32 @@ CLI, HTTP, and MCP.
 
 ## CLI exit codes
 
-| Code | Meaning                                                                                    | Common causes                                                                                                                |
-| ---- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| Code | Meaning                                                                                           | Common causes                                                                                                                |
+| ---- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `0`  | Report received; `recommendation.action = accept`. Also: auth signup/login/logout/whoami success. | —                                                                                                                            |
-| `1`  | Report received; `recommendation.action = escalate` or `reject`.                           | The validation ran; the simulation evidence did not pass. Review the report.                                                 |
-| `2`  | Caller error — the request was not sent or was rejected before processing.                 | HTTP 4xx response, preflight failure, bundle load failure, missing or invalid API key, credentials file error, invalid host. |
-| `3`  | Server error — HTTP 5xx.                                                                   | Transient Deterministic service failure. Retry with back-off.                                                                |
-| `4`  | Local IO or network failure — fetch threw; no HTTP response received.                      | No internet, DNS failure, wrong host URL, firewall.                                                                          |
-| `64` | Internal CLI bug — uncaught exception.                                                     | Report this as a bug with the full stderr output.                                                                            |
+| `1`  | Report received; `recommendation.action = escalate` or `reject`.                                  | The validation ran; the simulation evidence did not pass. Review the report.                                                 |
+| `2`  | Caller error — the request was not sent or was rejected before processing.                        | HTTP 4xx response, preflight failure, bundle load failure, missing or invalid API key, credentials file error, invalid host. |
+| `3`  | Server error — HTTP 5xx.                                                                          | Transient Deterministic service failure. Retry with back-off.                                                                |
+| `4`  | Local IO or network failure — fetch threw; no HTTP response received.                             | No internet, DNS failure, wrong host URL, firewall.                                                                          |
+| `64` | Internal CLI bug — uncaught exception.                                                            | Report this as a bug with the full stderr output.                                                                            |
 
 **First check after any non-zero exit:** read stderr. The CLI writes a human-readable error line to stderr on exit codes 2, 3, and 4.
 
 ---
+
+## Supported domains
+
+<!-- domains-inventory:start -->
+
+Supported `domain` values (canonical kebab-case ids). The snake_case alias is accepted by `validate` and by the `list-checks` / `describe-domain` catalog tools and canonicalized before anything is stored; stored reports and feedback aggregates carry the canonical id, so read filters such as `GET /api/v1/reports?domain=` and `list-feedback-candidates` must use the canonical form. Generated from the engine check inventory by `npm run generate:agent-surfaces`; do not edit between the markers.
+
+| Domain                  | Alias                   | Checks | Reference                                         |
+| ----------------------- | ----------------------- | ------ | ------------------------------------------------- |
+| `fluid-simulation`      | `fluid_simulation`      | 21     | https://deterministic.sh/docs/domains/cfd/        |
+| `structural-simulation` | `structural_simulation` | 22     | https://deterministic.sh/docs/domains/structural/ |
+| `thermal-simulation`    | `thermal_simulation`    | 16     | https://deterministic.sh/docs/domains/thermal/    |
+
+<!-- domains-inventory:end -->
 
 ## HTTP error codes
 
@@ -88,7 +102,7 @@ Common `fieldErrors` causes:
 | `fieldErrors[].path`             | Likely fix                                                                                                                                                                                                               |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `evidence.<n>.schema`            | The `schema` field is required on every evidence item.                                                                                                                                                                   |
-| `domain`                         | Use `fluid-simulation` (hyphen, not underscore). The underscore alias `fluid_simulation` is accepted but prefer the canonical form.                                                                                      |
+| `domain`                         | Use a canonical kebab-case id from Supported domains (e.g. `fluid-simulation`); the snake_case alias is accepted and canonicalized.                                                                                      |
 | `mode`                           | Use `instant` or `flag`. `gate` is reserved and rejected at service time.                                                                                                                                                |
 | `user_check_overrides.__proto__` | The keys `__proto__`, `prototype`, and `constructor` are forbidden at every nesting level.                                                                                                                               |
 | `context_provenance.<n>.path`    | The path is not in the admitted set. Only `context.method`, `context.operating_regime`, `context.scenario`, `context.time_basis`, and `context.parameters.{dynamic_viscosity,kinematic_viscosity,density}` are accepted. |
@@ -210,7 +224,7 @@ Every evidence item requires at minimum: `id`, `kind`, `role`, `format`, and eit
 
 ### Unknown domain or mode
 
-- `domain`: only `fluid-simulation` (or the alias `fluid_simulation`) is currently supported.
+- `domain`: must be one of the supported domains (see Supported domains); a well-formed but unknown value is the service-time `422` with `details.domain`.
 - `mode`: `instant` and `flag` are accepted. `gate` parses but is rejected at service time.
 
 ### Artifact not found (`422 artifact_resolution_failed`)
@@ -302,7 +316,7 @@ Output:
 
 ```
 "evidence.0.schema: Required"
-"domain: Invalid enum value"
+"domain must be 1–64 characters of [a-z0-9_-]"
 ```
 
 Fix the bundle fields indicated by each `path`, then resubmit.

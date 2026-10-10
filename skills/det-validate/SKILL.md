@@ -41,6 +41,20 @@ Submit a `ValidationRequest` bundle to Deterministic and interpret the resulting
 2. **HTTP** — use `POST /api/v1/validate` when the CLI is unavailable or the caller is making a programmatic API call.
 3. **MCP** — use the `validate` tool when operating inside a host that has the Deterministic MCP server configured (Claude desktop, ChatGPT, VS Code Copilot).
 
+## Supported domains
+
+<!-- domains-inventory:start -->
+
+Supported `domain` values (canonical kebab-case ids). The snake_case alias is accepted by `validate` and by the `list-checks` / `describe-domain` catalog tools and canonicalized before anything is stored; stored reports and feedback aggregates carry the canonical id, so read filters such as `GET /api/v1/reports?domain=` and `list-feedback-candidates` must use the canonical form. Generated from the engine check inventory by `npm run generate:agent-surfaces`; do not edit between the markers.
+
+| Domain                  | Alias                   | Checks | Reference                                         |
+| ----------------------- | ----------------------- | ------ | ------------------------------------------------- |
+| `fluid-simulation`      | `fluid_simulation`      | 21     | https://deterministic.sh/docs/domains/cfd/        |
+| `structural-simulation` | `structural_simulation` | 22     | https://deterministic.sh/docs/domains/structural/ |
+| `thermal-simulation`    | `thermal_simulation`    | 16     | https://deterministic.sh/docs/domains/thermal/    |
+
+<!-- domains-inventory:end -->
+
 ## Steps
 
 ### CLI path
@@ -111,14 +125,19 @@ The MCP surface shares the same `ValidationRequestSchema` as HTTP. Note: `userCh
 
 If the bundle is missing fields, infer them from available context and declare provenance for each inferred value.
 
-| Signal                                         | Inferred field                           |
-| ---------------------------------------------- | ---------------------------------------- |
-| `.foam`, `.cas`, `.dat`, `.vtk` extensions     | `domain` = `fluid-simulation`            |
-| `turbulenceProperties`, `RASModel`, `LESModel` | `context.operating_regime` = `turbulent` |
-| `Re < 2300` from log, `laminarFlow` keyword    | `context.operating_regime` = `laminar`   |
-| `steadyState` time scheme, `simple` solver     | `context.time_basis` = `steady`          |
-| `pimple`, `piso` solver                        | `context.time_basis` = `transient`       |
-| `fvSolution`, `blockMesh`                      | `context.method` = `FVM`                 |
+| Signal                                                                                       | Inferred field                                                                |
+| -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| OpenFOAM (`.foam`), EnSight, CGNS, Fluent CFF (`.cas.h5`/`.dat.h5`)                          | `domain` = `fluid-simulation`                                                 |
+| `.frd`, `.rst`/`.rth` with temperature results (thermal solve)                               | `domain` = `thermal-simulation`                                               |
+| `.frd`, `.rst`/`.rth` with stress or mode results (static/modal solve)                       | `domain` = `structural-simulation`                                            |
+| `.op2`/`.f06`                                                                                | `domain` = `structural-simulation`                                            |
+| `.vtk`/`.vtu`                                                                                | any supported `domain`, decided by the solver/result context                  |
+| A bare `.dat` (CalculiX `.dat` is content-detected; the suffix is shared by unrelated files) | never determines `domain`; if the context does not resolve it, ask the caller |
+| `turbulenceProperties`, `RASModel`, `LESModel`                                               | `context.operating_regime` = `turbulent`                                      |
+| `Re < 2300` from log, `laminarFlow` keyword                                                  | `context.operating_regime` = `laminar`                                        |
+| `steadyState` time scheme, `simple` solver                                                   | `context.time_basis` = `steady`                                               |
+| `pimple`, `piso` solver                                                                      | `context.time_basis` = `transient`                                            |
+| `fvSolution`, `blockMesh`                                                                    | `context.method` = `FVM`                                                      |
 
 ## `context_provenance` — admitted paths
 

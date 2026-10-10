@@ -32,13 +32,31 @@ Assemble a `ValidationRequest` JSON bundle from available simulation context, in
 - No network access required. This skill is local-only.
 - `ValidationRequestSchema` reference: `packages/validation-engine/src/request.ts`.
 
+## Supported domains
+
+<!-- domains-inventory:start -->
+
+Supported `domain` values (canonical kebab-case ids). The snake_case alias is accepted by `validate` and by the `list-checks` / `describe-domain` catalog tools and canonicalized before anything is stored; stored reports and feedback aggregates carry the canonical id, so read filters such as `GET /api/v1/reports?domain=` and `list-feedback-candidates` must use the canonical form. Generated from the engine check inventory by `npm run generate:agent-surfaces`; do not edit between the markers.
+
+| Domain                  | Alias                   | Checks | Reference                                         |
+| ----------------------- | ----------------------- | ------ | ------------------------------------------------- |
+| `fluid-simulation`      | `fluid_simulation`      | 21     | https://deterministic.sh/docs/domains/cfd/        |
+| `structural-simulation` | `structural_simulation` | 22     | https://deterministic.sh/docs/domains/structural/ |
+| `thermal-simulation`    | `thermal_simulation`    | 16     | https://deterministic.sh/docs/domains/thermal/    |
+
+<!-- domains-inventory:end -->
+
 ## Steps
 
 1. **Scan available files.** List extensions and filenames in the working directory or the directory specified by the caller.
 
-2. **Infer domain.** Match extensions to a domain:
-   - `.foam`, `.cas`, `.dat`, `.vtk`, `openfoam*`, `fluent*`, `case/` directory → `fluid-simulation`
-   - If no match, ask the caller to specify `domain` explicitly before continuing.
+2. **Infer domain.** Match the solver output to a domain from Supported domains:
+   - OpenFOAM (`.foam`), EnSight, CGNS, Fluent CFF (`.cas.h5`/`.dat.h5`) → `fluid-simulation`
+   - `.frd` and `.rst`/`.rth` → `structural-simulation` or `thermal-simulation`, decided by the solver/result context (a thermal solve writes temperatures; a static or modal solve writes stresses or modes)
+   - `.op2`/`.f06` → `structural-simulation`
+   - `.vtk`/`.vtu` → any supported domain, decided by the solver/result context
+   - A bare `.dat` never determines the domain: CalculiX `.dat` is content-detected, and the same suffix is shared by unrelated solver and text files.
+   - If no match, or the context does not resolve it, ask the caller to specify `domain` explicitly before continuing.
 
 3. **Set `mode`.** Use `instant` by default. Switch to `flag` only if the caller explicitly requests reviewer escalation. Do not use `gate` (reserved, rejected at service time).
 

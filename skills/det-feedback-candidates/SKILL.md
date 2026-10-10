@@ -33,7 +33,7 @@ Query aggregated reviewer-feedback statistics grouped by domain, scenario, regim
 
 - For HTTP: an API key with the standard `validate` scope.
 - For MCP: an OAuth token with the `feedback:read` scope.
-- A known canonical domain string (e.g. `fluid-simulation`). Domain aliases are canonicalized server-side, but use the canonical form to be safe.
+- A canonical domain string (e.g. `fluid-simulation`). The candidates query compares the stored canonical id literally, so a snake_case alias such as `fluid_simulation` returns no rows.
 
 ## Transport selection
 
@@ -42,6 +42,20 @@ Query aggregated reviewer-feedback statistics grouped by domain, scenario, regim
 | CLI       | No         | The `det` CLI does not support this endpoint.                   |
 | HTTP      | Yes        | `GET /api/v1/reviewer-feedback/candidates`                      |
 | MCP       | Yes        | `list-feedback-candidates` tool, requires `feedback:read` scope |
+
+## Supported domains
+
+<!-- domains-inventory:start -->
+
+Supported `domain` values (canonical kebab-case ids). The snake_case alias is accepted by `validate` and by the `list-checks` / `describe-domain` catalog tools and canonicalized before anything is stored; stored reports and feedback aggregates carry the canonical id, so read filters such as `GET /api/v1/reports?domain=` and `list-feedback-candidates` must use the canonical form. Generated from the engine check inventory by `npm run generate:agent-surfaces`; do not edit between the markers.
+
+| Domain                  | Alias                   | Checks | Reference                                         |
+| ----------------------- | ----------------------- | ------ | ------------------------------------------------- |
+| `fluid-simulation`      | `fluid_simulation`      | 21     | https://deterministic.sh/docs/domains/cfd/        |
+| `structural-simulation` | `structural_simulation` | 22     | https://deterministic.sh/docs/domains/structural/ |
+| `thermal-simulation`    | `thermal_simulation`    | 16     | https://deterministic.sh/docs/domains/thermal/    |
+
+<!-- domains-inventory:end -->
 
 ## Steps
 
