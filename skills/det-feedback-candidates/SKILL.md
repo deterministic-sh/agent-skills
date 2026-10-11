@@ -33,7 +33,7 @@ Query aggregated reviewer-feedback statistics grouped by domain, scenario, regim
 
 - For HTTP: an API key with the standard `validate` scope.
 - For MCP: an OAuth token with the `feedback:read` scope.
-- A canonical domain string (e.g. `fluid-simulation`). The candidates query compares the stored canonical id literally, so a snake_case alias such as `fluid_simulation` returns no rows.
+- A domain string (e.g. `fluid-simulation`). The snake_case alias (`fluid_simulation`) is accepted and canonicalized before the query runs, so it returns the same candidates as the canonical id.
 
 ## Transport selection
 
@@ -47,7 +47,7 @@ Query aggregated reviewer-feedback statistics grouped by domain, scenario, regim
 
 <!-- domains-inventory:start -->
 
-Supported `domain` values (canonical kebab-case ids). The snake_case alias is accepted by `validate` and by the `list-checks` / `describe-domain` catalog tools and canonicalized before anything is stored; stored reports and feedback aggregates carry the canonical id, so read filters such as `GET /api/v1/reports?domain=` and `list-feedback-candidates` must use the canonical form. Generated from the engine check inventory by `npm run generate:agent-surfaces`; do not edit between the markers.
+Supported `domain` values (canonical kebab-case ids). The snake_case alias is accepted wherever a domain is written or read (`validate`, the `list-checks` / `describe-domain` catalog tools, the `GET /api/v1/reports?domain=` filter and both feedback-candidate filters) and canonicalized before it is stored or compared, so stored reports and feedback aggregates carry the canonical id and an alias filter returns the same rows as the canonical one. Generated from the engine check inventory by `npm run generate:agent-surfaces`; do not edit between the markers.
 
 | Domain                  | Alias                   | Checks | Reference                                         |
 | ----------------------- | ----------------------- | ------ | ------------------------------------------------- |
