@@ -125,6 +125,8 @@ The MCP surface shares the same `ValidationRequestSchema` as HTTP. Note: `userCh
 
 If the bundle is missing fields, infer them from available context and declare provenance for each inferred value.
 
+The native solver formats in the table reach a bundle only as an extract from the `deterministic-extract` reducer (`det-extract`), available to audited design-partner installations and not publicly distributed; otherwise the caller authors CSV, JSON or Parquet evidence tables.
+
 | Signal                                                                                       | Inferred field                                                                |
 | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | OpenFOAM (`.foam`), EnSight, CGNS, Fluent CFF (`.cas.h5`/`.dat.h5`)                          | `domain` = `fluid-simulation`                                                 |

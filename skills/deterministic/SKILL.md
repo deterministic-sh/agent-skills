@@ -49,6 +49,8 @@ This skill does not implement validation logic, API calls, or parameter inferenc
 | Onboard                 | "first time", "get started", "set up deterministic", "help me start", "what is deterministic", "help", "what can you do" | `det-onboard`             |
 | Troubleshoot            | "error", "not working", "failing", "401", "rate limited", "exit code", "what does this error mean"                       | `det-troubleshoot`        |
 
+`det-extract` runs the `deterministic-extract` reducer, available to audited design-partner installations and not publicly distributed; without it, author CSV, JSON or Parquet tables and route to `det-prepare-bundle`.
+
 ## Routing rules
 
 **Routing is based on intent, not execution context.** A user saying "validate this run" routes to `det-validate` regardless of whether credentials are present. Missing credentials are handled by the target skill (which checks `$DETERMINISTIC_API_KEY` and surfaces auth errors), or by routing to `det-auth` only when the user explicitly asks for auth setup.

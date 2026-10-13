@@ -57,6 +57,7 @@ Supported `domain` values (canonical kebab-case ids). The snake_case alias is ac
    - `.vtk`/`.vtu` → any supported domain, decided by the solver/result context
    - A bare `.dat` never determines the domain: CalculiX `.dat` is content-detected, and the same suffix is shared by unrelated solver and text files.
    - If no match, or the context does not resolve it, ask the caller to specify `domain` explicitly before continuing.
+   - These native solver formats reach a bundle only as an extract from the `deterministic-extract` reducer (`det-extract`), available to audited design-partner installations and not publicly distributed; otherwise the caller authors CSV, JSON or Parquet evidence tables.
 
 3. **Set `mode`.** Use `instant` by default. Switch to `flag` only if the caller explicitly requests reviewer escalation. Do not use `gate` (reserved, rejected at service time).
 
