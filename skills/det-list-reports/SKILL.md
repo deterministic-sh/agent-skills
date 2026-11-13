@@ -119,7 +119,7 @@ Rows are returned in `(createdAt DESC, id DESC)` order — newest first.
 
 ## Retention note
 
-The listing endpoint reads from the `report_summary` projection, which is pruned after 90 days by default. Reports older than the retention window are not returned by this endpoint but remain accessible individually via `GET /api/v1/reports/:id`.
+The listing endpoint reads from the `report_summary` projection. A daily sweep deletes each report, its listing entry and its stored contents together once it is past your current plan's retention window (7 days on Free, 90 days on Team, 12 months on Scale, extended by up to 30 days after a plan change), so a report that has left this listing is no longer available from `GET /api/v1/reports/:id` either.
 
 ## Error codes
 
